@@ -11,7 +11,7 @@ export default function Login() {
     // Simple authentication check
     if (email === 'justinliuforever@gmail.com' && password === '123456') {
       // Navigate to main page upon successful login
-      navigate('/mainpage'); // Change '/mainpage' to your main page's route
+      navigate('/music'); // Change '/mainpage' to your main page's route
     } else {
       alert('Invalid credentials'); // Basic error handling
     }

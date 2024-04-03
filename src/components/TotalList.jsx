@@ -1,21 +1,25 @@
-// components/TotalList.jsx
 import { useEffect, useState } from 'react';
+
+import { REACT_APP_API_URL } from '../../config.js';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 function TotalList() {
   const [musicData, setMusicData] = useState([]);
+  const navigate = useNavigate(); // Use the useNavigate hook here
 
   useEffect(() => {
-    fetch('http://localhost:5555/music/')
+    fetch(`${REACT_APP_API_URL}/music/`)
       .then((response) => response.json())
       .then((data) => setMusicData(data))
       .catch((error) => console.error('Error fetching music data:', error));
   }, []);
 
   return (
-    <ul role="list" className="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8">
+    <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-6 gap-y-8 xl:gap-x-8">
       {musicData.map((music) => (
-        <li key={music._id} className="overflow-hidden rounded-xl border border-gray-200 shadow-lg">
-          <div className="flex flex-col items-center justify-center p-6">
+        // Wrap the li content in a div and add onClick event handler to navigate
+        <li key={music._id} className="overflow-hidden rounded-xl border border-gray-200 shadow-lg w-full max-w-xs mx-auto cursor-pointer">
+          <div onClick={() => navigate(`/music/${music._id}`)} className="flex flex-col items-center justify-center p-6">
             <img
               src={music.musicPictureURL}
               alt={music.title}
@@ -43,5 +47,7 @@ function TotalList() {
     </ul>
   );
 }
+
+
 
 export default TotalList;

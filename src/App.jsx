@@ -1,5 +1,6 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
+import DetailPage from './pages/DetailPage';
 import LoginPage from './pages/LoginPage';
 import MainPage from './pages/MainPage';
 
@@ -10,7 +11,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage/>} />
-        <Route path="/mainpage" element={<MainPage/>} />
+        <Route path="/music" element={<MainPage/>} />
+        <Route path="/music/:id" element={<DetailPage />} /> 
         {/* You can add more routes here */}
       </Routes>
     </Router>

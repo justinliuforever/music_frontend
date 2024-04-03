@@ -6,7 +6,10 @@ function MainPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-center my-8">Music Library</h1>
-      <TotalList />
+      
+      <div className="py-6 px-5">
+        <TotalList />
+      </div>
     </div>
   );
 }
