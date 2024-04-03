@@ -19,7 +19,7 @@ function TotalList() {
       {musicData.map((music) => (
         // Wrap the li content in a div and add onClick event handler to navigate
         <li key={music._id} className="overflow-hidden rounded-xl border border-gray-200 shadow-lg w-full max-w-xs mx-auto cursor-pointer">
-          <div onClick={() => navigate(`/music/${music._id}`)} className="flex flex-col items-center justify-center p-6">
+          <div onClick={() => navigate(`/music/library/${music._id}`)} className="flex flex-col items-center justify-center p-6">
             <img
               src={music.musicPictureURL}
               alt={music.title}

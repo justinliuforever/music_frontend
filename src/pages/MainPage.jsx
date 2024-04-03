@@ -1,15 +1,15 @@
 // MainPage.jsx
 //import React from 'react';
-import TotalList from '../components/TotalList'; // Adjust the import path based on your actual project structure
+import Header from "../components/Header";
 
 function MainPage() {
   return (
+  
     <div>
-      <h1 className="text-2xl font-bold text-center my-8">Music Library</h1>
-      
-      <div className="py-6 px-5">
-        <TotalList />
+      <div> 
+        <Header />
       </div>
+      <div><h1 className="text-2xl font-bold text-center my-8">Dash Board</h1></div>
     </div>
   );
 }
