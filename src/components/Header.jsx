@@ -5,7 +5,7 @@ import { useState } from 'react'
 
 const navigation = [
   { name: 'Dash Board', href: '/music' },
-  { name: 'Upload', href: '#' },
+  { name: 'Upload', href: '/music/upload' },
   { name: 'Music Library', href: '/music/library' },
   { name: 'Company', href: '#' },
 ]
