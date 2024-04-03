@@ -16,35 +16,103 @@ export default function UploadPage() {
     musicAudioURL: '',
   });
 
+  // New state for files
+  const [imageFile, setImageFile] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
+
+  const handleImageChange = (e) => {
+    setImageFile(e.target.files[0]);
+  };
+
+  const handleAudioChange = (e) => {
+    setAudioFile(e.target.files[0]);
+  };
+
+  const uploadFileToFirebase = async (file, route) => {
+    const formData = new FormData();
+    formData.append(route === '/firebase/uploadImage' ? 'image' : 'audio', file);
+
+    const response = await fetch(`http://localhost:5555${route}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Failed to upload file to Firebase');
+    return await response.json();
+  };
+
   // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   // Handle form submit
+// Assuming you have state hooks for formData, imageFile, and audioFile
+// and handleChange handlers for form inputs and file inputs
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(JSON.stringify(formData)); // Debugging line to see what you're sending
-  
+    e.preventDefault(); // Prevent default form submission behavior
+
     try {
-      const response = await fetch(`${REACT_APP_API_URL}/music`, { // Make sure URL is correct
+      // Step 1: Upload the image file to Firebase if it exists
+      if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append('image', imageFile); // 'image' is the key expected by the multer configuration on the server-side
+
+        const imageResponse = await fetch('http://localhost:5555/firebase/uploadImage', {
+          method: 'POST',
+          body: imageFormData,
+        });
+
+        if (!imageResponse.ok) {
+          throw new Error('Failed to upload image file');
+        }
+
+        const imageResult = await imageResponse.json();
+        // Update formData with the returned imageURL
+        formData.musicPictureURL = imageResult.imageURL;
+      }
+
+      // Step 2: Upload the audio file to Firebase if it exists
+      if (audioFile) {
+        const audioFormData = new FormData();
+        audioFormData.append('audio', audioFile); // 'audio' is the key expected by the multer configuration on the server-side
+
+        const audioResponse = await fetch('http://localhost:5555/firebase/uploadAudio', {
+          method: 'POST',
+          body: audioFormData,
+        });
+
+        if (!audioResponse.ok) {
+          throw new Error('Failed to upload audio file');
+        }
+
+        const audioResult = await audioResponse.json();
+        // Update formData with the returned audioURL
+        formData.musicAudioURL = audioResult.audioURL;
+      }
+
+      // Step 3: Submit the updated formData to MongoDB
+      const response = await fetch(`${REACT_APP_API_URL}/music`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData), // formData now includes URLs from Firebase
       });
-  
+
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.status}`);
       }
-  
+
       const result = await response.json();
-      console.log(result); // Success
+      console.log(result); // Log or handle the successful submission response
+
     } catch (error) {
-      console.error('Error:', error); // Detailed error
+      console.error('Error during the submission process:', error);
     }
   };
+
   
 
   return (
@@ -171,7 +239,7 @@ export default function UploadPage() {
             </div>
 
             {/* Music Picture URL Field */}
-            <div>
+            {/* <div>
               <label htmlFor="musicPictureURL" className="block text-sm font-semibold leading-6 text-gray-900">
                 Music Picture URL (Optional)
               </label>
@@ -183,10 +251,10 @@ export default function UploadPage() {
                 onChange={handleChange} // Assuming handleChange can handle simple key-value updates
                 className="mt-2.5 block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
-            </div>
+            </div> */}
 
             {/* Music Audio URL Field - Marked as required in your schema */}
-            <div>
+            {/* <div>
               <label htmlFor="musicAudioURL" className="block text-sm font-semibold leading-6 text-gray-900">
                 Music Audio URL
               </label>
@@ -199,7 +267,13 @@ export default function UploadPage() {
                 onChange={handleChange}
                 className="mt-2.5 block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
-            </div>
+            </div> */}
+
+            {/* Include file input for image */}
+            <input type="file" name="imageFile" onChange={handleImageChange} />
+            {/* Include file input for audio */}
+            <input type="file" name="audioFile" onChange={handleAudioChange} />
+            {/* Your existing submit button */}
 
 
             
