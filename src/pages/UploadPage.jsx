@@ -42,7 +42,7 @@ export default function UploadPage() {
     const formData = new FormData();
     formData.append(route === '/firebase/uploadImage' ? 'image' : 'audio', file);
 
-    const response = await fetch(`http://localhost:5555${route}`, {
+    const response = await fetch(`${REACT_APP_API_URL}${route}`, {
       method: 'POST',
       body: formData,
     });
@@ -66,7 +66,7 @@ export default function UploadPage() {
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile); // 'image' is the key expected by the multer configuration on the server-side
 
-        const imageResponse = await fetch('http://localhost:5555/firebase/uploadImage', {
+        const imageResponse = await fetch(`${REACT_APP_API_URL}/firebase/uploadImage`, {
           method: 'POST',
           body: imageFormData,
         });
@@ -85,7 +85,7 @@ export default function UploadPage() {
         const audioFormData = new FormData();
         audioFormData.append('audio', audioFile); // 'audio' is the key expected by the multer configuration on the server-side
 
-        const audioResponse = await fetch('http://localhost:5555/firebase/uploadAudio', {
+        const audioResponse = await fetch(`${REACT_APP_API_URL}/firebase/uploadAudio`, {
           method: 'POST',
           body: audioFormData,
         });
