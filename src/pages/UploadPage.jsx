@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import { REACT_APP_API_URL } from '../../config.js';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function UploadPage() {
@@ -15,6 +16,8 @@ export default function UploadPage() {
     musicPictureURL: '',
     musicAudioURL: '',
   });
+
+  const navigate = useNavigate();
 
   // New state for files
   const [imageFile, setImageFile] = useState(null);
@@ -54,9 +57,6 @@ export default function UploadPage() {
   };
 
   // Handle form submit
-// Assuming you have state hooks for formData, imageFile, and audioFile
-// and handleChange handlers for form inputs and file inputs
-
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
 
@@ -114,6 +114,8 @@ export default function UploadPage() {
 
       const result = await response.json();
       console.log(result); // Log or handle the successful submission response
+
+      navigate('/music/upload/success'); // Navigate to the success page
 
     } catch (error) {
       console.error('Error during the submission process:', error);
