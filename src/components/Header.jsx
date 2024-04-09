@@ -7,7 +7,7 @@ const navigation = [
   { name: 'Dash Board', href: '/music' },
   { name: 'Upload', href: '/music/upload' },
   { name: 'Music Library', href: '/music/library' },
-  { name: 'Company', href: '#' },
+  { name: 'Admin Setting', href: '#' },
 ]
 
 export default function Header() {

@@ -38,6 +38,18 @@ export default function UploadPage() {
     setAudioName(file ? file.name : 'Upload Music'); // Set file name or revert to default
   };
 
+  // Function to handle canceling image selection
+  const handleCancelImage = () => {
+    setImageFile(null); // Reset image file to null
+    setImageName('Upload Image'); // Reset image name to default
+  };
+  
+  // Function to handle canceling audio selection
+  const handleCancelAudio = () => {
+    setAudioFile(null); // Reset audio file to null
+    setAudioName('Upload Music'); // Reset audio name to default
+  };
+  
   const uploadFileToFirebase = async (file, route) => {
     const formData = new FormData();
     formData.append(route === '/firebase/uploadImage' ? 'image' : 'audio', file);
@@ -121,8 +133,6 @@ export default function UploadPage() {
       console.error('Error during the submission process:', error);
     }
   };
-
-  
 
   return (
     <div className="relative isolate bg-white px-6 py-2 sm:py-2 lg:px-8">
@@ -260,28 +270,23 @@ export default function UploadPage() {
             <input type="file" name="audioFile" onChange={handleAudioChange} /> */}
 
             <div className="mt-8 flex gap-4">
-              {/* Image Upload with File Name Display */}
+              
+              {/* Image Upload with Cancel Button */}
               <label className="flex-1 relative cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2">
                 <input type="file" name="imageFile" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                <span className="mx-auto h-8 w-8 text-gray-400">
-                {/* SVG Icon for Image Upload */}
-                <svg fill="none" stroke="currentColor" viewBox="0 0 48 48" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M33 14H15c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h18c2.761 0 5-2.239 5-5V19c0-2.761-2.239-5-5-5zM15 27c0-2.209 1.791-4 4-4s4 1.791 4 4-1.791 4-4 4-4-1.791-4-4zm18 4l-3-3-5 6H15v-2c0-3.309 2.691-6 6-6s6 2.691 6 6v2z" />
-                </svg>
-                </span>
-                <span className="mt-2 block text-xs font-semibold text-gray-900">{imageName}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-900">{imageName}</span>
+                  {imageFile && <button type="button" onClick={handleCancelImage} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
+                </div>
               </label>
 
-              {/* Audio Upload with File Name Display */}
+              {/* Audio Upload with Cancel Button */}
               <label className="flex-1 relative cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2">
                 <input type="file" name="audioFile" onChange={handleAudioChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                <span className="mx-auto h-8 w-8 text-gray-400">
-                {/* SVG Icon for Audio Upload */}
-                <svg fill="none" stroke="currentColor" viewBox="0 0 48 48" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 38h24V10H12v28zm8-25v18m4-18v18m-14 4h24a2 2 0 002-2V8a2 2 0 00-2-2H10a2 2 0 00-2 2v28a2 2 0 002 2z" />
-                </svg>
-                </span>
-                <span className="mt-2 block text-xs font-semibold text-gray-900">{audioName}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-900">{audioName}</span>
+                  {audioFile && <button type="button" onClick={handleCancelAudio} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
+                </div>
               </label>
             </div>
             
