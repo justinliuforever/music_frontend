@@ -15,7 +15,10 @@ export default function UploadPage() {
     description: '',
     musicPictureURL: '',
     musicAudioURL: '',
+    fullScoreURLs: [], // Placeholder for full score URLs
+    pianoReductionURLs: [], // Placeholder for piano reduction URLs
   });
+  
 
   const navigate = useNavigate();
 
@@ -24,6 +27,15 @@ export default function UploadPage() {
   const [audioFile, setAudioFile] = useState(null);
   const [imageName, setImageName] = useState('Upload Image'); // Initial state for image name
   const [audioName, setAudioName] = useState('Upload Music'); // Initial state for audio name
+
+  // New state for full score files
+  const [fullScoreFiles, setFullScoreFiles] = useState([]);
+  const [fullScoreNames, setFullScoreNames] = useState('Upload Full Score(s)'); // Initial state for full score names
+
+  // New state for piano reduction files
+  const [pianoReductionFiles, setPianoReductionFiles] = useState([]);
+  const [pianoReductionNames, setPianoReductionNames] = useState('Upload Piano Reduction(s)'); // Initial state for piano reduction names
+
 
 
   const handleImageChange = (e) => {
@@ -38,10 +50,24 @@ export default function UploadPage() {
     setAudioName(file ? file.name : 'Upload Music'); // Set file name or revert to default
   };
 
+  const handleFullScoreChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFullScoreFiles(files);
+    setFullScoreNames(files.length > 1 ? `${files.length} files selected` : files[0].name);
+  };
+
+  const handlePianoReductionChange = (e) => {
+    const files = Array.from(e.target.files); // Convert FileList to Array
+    setPianoReductionFiles(files);
+    setPianoReductionNames(files.length > 1 ? `${files.length} files selected` : files[0].name);
+  };
+  
+
+
   // Function to handle canceling image selection
   const handleCancelImage = () => {
     setImageFile(null); // Reset image file to null
-    setImageName('Upload Image'); // Reset image name to default
+    setImageName('Upload Image test'); // Reset image name to default
   };
   
   // Function to handle canceling audio selection
@@ -49,90 +75,138 @@ export default function UploadPage() {
     setAudioFile(null); // Reset audio file to null
     setAudioName('Upload Music'); // Reset audio name to default
   };
+
+  const handleCancelFullScore = () => {
+    setFullScoreFiles([]); // Reset full score files to an empty array
+    setFullScoreNames('Upload Full Score(s)'); // Reset full score names to default
+  };
+
+  const handleCancelPianoReduction = () => {
+    setPianoReductionFiles([]); // Reset piano reduction files to an empty array
+    setPianoReductionNames('Upload Piano Reduction(s)'); // Reset piano reduction names to default
+};
+
   
-  const uploadFileToFirebase = async (file, route) => {
-    const formData = new FormData();
-    formData.append(route === '/firebase/uploadImage' ? 'image' : 'audio', file);
+async function uploadFileToFirebase(file, route, fieldName) {
+  const formData = new FormData();
+  formData.append(fieldName, file);
 
-    const response = await fetch(`${REACT_APP_API_URL}${route}`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Failed to upload file to Firebase');
-    return await response.json();
-  };
-
-  // Handle input change
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Handle form submit
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
-
-    try {
-      // Step 1: Upload the image file to Firebase if it exists
-      if (imageFile) {
-        const imageFormData = new FormData();
-        imageFormData.append('image', imageFile); // 'image' is the key expected by the multer configuration on the server-side
-
-        const imageResponse = await fetch(`${REACT_APP_API_URL}/firebase/uploadImage`, {
+  try {
+      const response = await fetch(`${REACT_APP_API_URL}/firebase${route}`, {
           method: 'POST',
-          body: imageFormData,
-        });
-
-        if (!imageResponse.ok) {
-          throw new Error('Failed to upload image file');
-        }
-
-        const imageResult = await imageResponse.json();
-        // Update formData with the returned imageURL
-        formData.musicPictureURL = imageResult.imageURL;
-      }
-
-      // Step 2: Upload the audio file to Firebase if it exists
-      if (audioFile) {
-        const audioFormData = new FormData();
-        audioFormData.append('audio', audioFile); // 'audio' is the key expected by the multer configuration on the server-side
-
-        const audioResponse = await fetch(`${REACT_APP_API_URL}/firebase/uploadAudio`, {
-          method: 'POST',
-          body: audioFormData,
-        });
-
-        if (!audioResponse.ok) {
-          throw new Error('Failed to upload audio file');
-        }
-
-        const audioResult = await audioResponse.json();
-        // Update formData with the returned audioURL
-        formData.musicAudioURL = audioResult.audioURL;
-      }
-
-      // Step 3: Submit the updated formData to MongoDB
-      const response = await fetch(`${REACT_APP_API_URL}/music`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // formData now includes URLs from Firebase
+          body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.status}`);
+          throw new Error(`Failed to upload file to ${route}, status: ${response.status}`);
       }
 
+      return await response.json(); // Assuming the backend response includes the file URL(s)
+  } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+  }
+}
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: value,
+    }));
+  };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
+  
+    try {
+      // Initialize an object to collect URLs
+      const urls = {
+        musicPictureURL: '',
+        musicAudioURL: '',
+        fullScoreURLs: [],
+        pianoReductionURLs: [],
+      };
+  
+      // Upload the image file
+      if (imageFile) {
+        const imageResponse = await uploadFileToFirebase(imageFile, '/uploadImage', 'image');
+        urls.musicPictureURL = imageResponse.imageURL;
+      }
+  
+      // Upload the audio file
+      if (audioFile) {
+        const audioResponse = await uploadFileToFirebase(audioFile, '/uploadAudio', 'audio');
+        urls.musicAudioURL = audioResponse.audioURL;
+      }
+  
+      // Upload full score files
+      if (fullScoreFiles.length > 0) {
+        const fullScoreResponses = await Promise.all(fullScoreFiles.map(file =>
+          uploadFileToFirebase(file, '/uploadFullScore', 'fullScore')
+        ));
+        urls.fullScoreURLs = fullScoreResponses.flatMap(res => res.urls); // Assuming each response has a .url property
+      }
+  
+      // Upload piano reduction files
+      if (pianoReductionFiles.length > 0) {
+        const pianoReductionResponses = await Promise.all(pianoReductionFiles.map(file =>
+          uploadFileToFirebase(file, '/uploadPianoReduction', 'pianoReduction')
+        ));
+        urls.pianoReductionURLs = pianoReductionResponses.flatMap(res => res.urls); // Assuming each response has a .url property
+      }
+  
+      // Split genre string into an array by commas and trim whitespace
+      const genres = formData.genre ? formData.genre.split(',').map(genre => genre.trim()) : [];
+  
+      // Convert year string to a number if it's not empty, otherwise set to undefined
+      const year = formData.year ? Number(formData.year) : undefined;
+  
+      const finalFormData = {
+        ...formData,
+        genre: genres,
+        year: year,
+        musicPictureURL: urls.musicPictureURL,
+        musicAudioURL: urls.musicAudioURL,
+        musicScore: {
+          fullScore: urls.fullScoreURLs, // Now directly using the URLs array
+          pianoReduction: urls.pianoReductionURLs, // Same as above
+        },
+        // Remove unnecessary properties from the form data to match the backend schema
+      };
+      console.log('Final form data:', finalFormData);
+  
+      // Delete properties not required or expected by the backend
+      delete finalFormData.fullScoreURLs;
+      delete finalFormData.pianoReductionURLs;
+      delete finalFormData.fullScoreFiles;
+      delete finalFormData.pianoReductionFiles;
+  
+      // Submit the updated formData to your backend
+      const response = await fetch(`${REACT_APP_API_URL}/music`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalFormData),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to submit form data, status: ${response.status}`);
+      }
+  
       const result = await response.json();
-      console.log(result); // Log or handle the successful submission response
-
-      navigate('/music/upload/success'); // Navigate to the success page
-
+      console.log('Submission successful:', result);
+  
+      // Navigate to success page or reset form
+      navigate('/music/upload/success');
     } catch (error) {
-      console.error('Error during the submission process:', error);
+      console.error('Submission error:', error);
     }
   };
+  
+
+  
 
   return (
     <div className="relative isolate bg-white px-6 py-2 sm:py-2 lg:px-8">
@@ -273,7 +347,7 @@ export default function UploadPage() {
                 <input type="file" name="imageFile" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-semibold text-gray-900">{imageName}</span>
-                  {imageFile && <button type="button" onClick={handleCancelImage} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
+                  {imageFile && <button type="button" onClick={(event) => handleCancelImage(event)} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
                 </div>
               </label>
 
@@ -285,6 +359,26 @@ export default function UploadPage() {
                   {audioFile && <button type="button" onClick={handleCancelAudio} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
                 </div>
               </label>
+
+              {/* Full Score Upload with Cancel Button */}
+              <label className="flex-1 relative cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2">
+                <input type="file" multiple name="fullScoreFiles" onChange={handleFullScoreChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-900">{fullScoreNames}</span>
+                  {fullScoreFiles.length > 0 && <button type="button" onClick={handleCancelFullScore} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
+                </div>
+              </label>
+
+              {/* Piano Reduction Upload with Cancel Button */}
+              <label className="flex-1 relative cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2">
+                <input type="file" multiple name="pianoReductionFiles" onChange={handlePianoReductionChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-900">{pianoReductionNames}</span>
+                  {pianoReductionFiles.length > 0 && <button type="button" onClick={handleCancelPianoReduction} className="text-indigo-600 hover:text-indigo-900">Cancel</button>}
+                </div>
+              </label>
+
+
             </div>
             
             {/* Submit Button */}
