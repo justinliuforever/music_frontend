@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import ImageCarousel from '../components/ImageCarousel';
 //import { PaperClipIcon } from '@heroicons/react/20/solid';
 import{REACT_APP_API_URL} from '../../config.js';
 
@@ -86,6 +87,26 @@ function DetailPage() {
               <img src={musicDetail.musicPictureURL} alt="Music Cover" className="w-48 h-auto rounded-md" />
             </dd>
           </div>
+
+          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+            <dt className="text-sm font-medium text-gray-500">Music FullScore</dt>
+            <dd className="mt-1 sm:col-span-2 sm:mt-0">
+            {musicDetail && musicDetail.musicScore && musicDetail.musicScore.fullScore && (
+            <ImageCarousel images={musicDetail.musicScore.fullScore} />
+          )}
+            </dd>
+          </div>
+
+          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+            <dt className="text-sm font-medium text-gray-500">Music Piano Reduction</dt>
+            <dd className="mt-1 sm:col-span-2 sm:mt-0">
+            {musicDetail && musicDetail.musicScore && musicDetail.musicScore.pianoReduction && (
+            <ImageCarousel images={musicDetail.musicScore.pianoReduction} />
+          )}
+            </dd>
+          </div>
+
+          
           <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Listen</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
