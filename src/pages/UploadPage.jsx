@@ -265,9 +265,6 @@ export default function UploadPage() {
               ></textarea>
             </div>
 
-            {/* Two files upload */}
-            {/* <input type="file" name="imageFile" onChange={handleImageChange} />
-            <input type="file" name="audioFile" onChange={handleAudioChange} /> */}
 
             <div className="mt-8 flex gap-4">
               
