@@ -191,7 +191,6 @@ export default function UploadPage() {
     }
 
     try {
-      // First upload all files to Firebase
       const uploadedUrls = {
         fullScore: {
           baseXML: null,
@@ -201,6 +200,8 @@ export default function UploadPage() {
         partScore: {
           xmlSoloParts: [],
         },
+        // Add soundTracks array to store uploaded URLs
+        soundTracks: [],
       };
 
       // Upload base XML if exists
@@ -265,6 +266,46 @@ export default function UploadPage() {
         }
       }
 
+      // Upload soundtracks if they exist
+      if (files.soundTracks.length > 0) {
+        for (const track of files.soundTracks) {
+          const trackUrls = {};
+
+          // Upload WAV file if exists
+          if (track.wav) {
+            const wavFormData = new FormData();
+            wavFormData.append('track', track.wav);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+              method: 'POST',
+              body: wavFormData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+              trackUrls.wav = data.url;
+            }
+          }
+
+          // Upload MIDI file if exists
+          if (track.midi) {
+            const midiFormData = new FormData();
+            midiFormData.append('track', track.midi);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+              method: 'POST',
+              body: midiFormData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+              trackUrls.midi = data.url;
+            }
+          }
+
+          // Add track URLs to the array if either WAV or MIDI was uploaded
+          if (trackUrls.wav || trackUrls.midi) {
+            uploadedUrls.soundTracks.push(trackUrls);
+          }
+        }
+      }
+
       // Prepare the complete form data with file URLs
       const formDataObj = {
         // Basic Info
@@ -286,6 +327,8 @@ export default function UploadPage() {
 
         // Score URLs
         scores: uploadedUrls,
+        // Add soundTracks to the form data
+        soundTracks: uploadedUrls.soundTracks,
       };
 
       console.log('Sending data to server:', formDataObj);
