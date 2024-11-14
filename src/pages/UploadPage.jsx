@@ -105,29 +105,58 @@ export default function UploadPage() {
 
   // Handle file changes
   const handleFileChange = (e, sectionName, fieldName, index = null) => {
-    const file = e.target.files[0];
-    setFiles((prevFiles) => {
-      if (index !== null) {
-        // For nested arrays like soundTracks and userInputs
-        const updatedArray = [...prevFiles[sectionName]];
-        updatedArray[index] = {
-          ...updatedArray[index],
-          [fieldName]: file,
-        };
-        return {
-          ...prevFiles,
-          [sectionName]: updatedArray,
-        };
-      } else {
-        return {
-          ...prevFiles,
-          [sectionName]: {
-            ...prevFiles[sectionName],
+    // Handle multiple files
+    if (e.target.multiple) {
+      const files = Array.from(e.target.files);
+      setFiles((prevFiles) => {
+        if (index !== null) {
+          // For nested arrays like soundTracks and userInputs
+          const updatedArray = [...prevFiles[sectionName]];
+          updatedArray[index] = {
+            ...updatedArray[index],
+            [fieldName]: files,
+          };
+          return {
+            ...prevFiles,
+            [sectionName]: updatedArray,
+          };
+        } else if (fieldName === 'editedXMLs' || fieldName === 'xmlSoloParts') {
+          // For arrays of files
+          return {
+            ...prevFiles,
+            [sectionName]: {
+              ...prevFiles[sectionName],
+              [fieldName]: files,
+            },
+          };
+        }
+      });
+    } else {
+      // Handle single file
+      const file = e.target.files[0];
+      setFiles((prevFiles) => {
+        if (index !== null) {
+          // For nested arrays like soundTracks and userInputs
+          const updatedArray = [...prevFiles[sectionName]];
+          updatedArray[index] = {
+            ...updatedArray[index],
             [fieldName]: file,
-          },
-        };
-      }
-    });
+          };
+          return {
+            ...prevFiles,
+            [sectionName]: updatedArray,
+          };
+        } else {
+          return {
+            ...prevFiles,
+            [sectionName]: {
+              ...prevFiles[sectionName],
+              [fieldName]: file,
+            },
+          };
+        }
+      });
+    }
   };
 
   // Add item to files array fields
@@ -152,8 +181,8 @@ export default function UploadPage() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     console.log('Current formData:', formData);
+    console.log('Current files:', files);
 
     // Validation check
     if (!formData.composerLastName || !formData.composerFullName || !formData.title) {
@@ -162,7 +191,81 @@ export default function UploadPage() {
     }
 
     try {
-      // Include all form data in the request
+      // First upload all files to Firebase
+      const uploadedUrls = {
+        fullScore: {
+          baseXML: null,
+          editedXMLs: [],
+          pdf: null,
+        },
+        partScore: {
+          xmlSoloParts: [],
+        },
+      };
+
+      // Upload base XML if exists
+      if (files.fullScore.baseXML) {
+        const xmlFormData = new FormData();
+        xmlFormData.append('xml', files.fullScore.baseXML);
+        const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadXML`, {
+          method: 'POST',
+          body: xmlFormData,
+        });
+        const data = await response.json();
+        if (response.ok) {
+          uploadedUrls.fullScore.baseXML = data.url;
+        } else {
+          throw new Error('Failed to upload base XML');
+        }
+      }
+
+      // Upload edited XMLs if exist
+      if (files.fullScore.editedXMLs.length > 0) {
+        for (const xmlFile of files.fullScore.editedXMLs) {
+          const xmlFormData = new FormData();
+          xmlFormData.append('xml', xmlFile);
+          const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadXML`, {
+            method: 'POST',
+            body: xmlFormData,
+          });
+          const data = await response.json();
+          if (response.ok) {
+            uploadedUrls.fullScore.editedXMLs.push(data.url);
+          }
+        }
+      }
+
+      // Upload PDF if exists
+      if (files.fullScore.pdf) {
+        const pdfFormData = new FormData();
+        pdfFormData.append('pdf', files.fullScore.pdf);
+        const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadPDF`, {
+          method: 'POST',
+          body: pdfFormData,
+        });
+        const data = await response.json();
+        if (response.ok) {
+          uploadedUrls.fullScore.pdf = data.url;
+        }
+      }
+
+      // Upload solo parts XMLs if exist
+      if (files.partScore.xmlSoloParts.length > 0) {
+        for (const xmlFile of files.partScore.xmlSoloParts) {
+          const xmlFormData = new FormData();
+          xmlFormData.append('xml', xmlFile);
+          const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadXML`, {
+            method: 'POST',
+            body: xmlFormData,
+          });
+          const data = await response.json();
+          if (response.ok) {
+            uploadedUrls.partScore.xmlSoloParts.push(data.url);
+          }
+        }
+      }
+
+      // Prepare the complete form data with file URLs
       const formDataObj = {
         // Basic Info
         composerLastName: formData.composerLastName.trim(),
@@ -180,6 +283,9 @@ export default function UploadPage() {
         rehearsalNumbers: formData.rehearsalNumbers,
         rubatoSections: formData.rubatoSections,
         barNumbers: formData.barNumbers,
+
+        // Score URLs
+        scores: uploadedUrls,
       };
 
       console.log('Sending data to server:', formDataObj);
@@ -193,15 +299,14 @@ export default function UploadPage() {
         body: JSON.stringify(formDataObj)
       });
 
-      // Log the full response for debugging
       console.log('Response status:', response.status);
-      
       const responseData = await response.json();
       console.log('Response data:', responseData);
 
       if (response.ok) {
         console.log('Upload successful');
         alert('Upload successful!');
+        // Reset form data
         setFormData({
           composerLastName: '',
           composerFullName: '',
@@ -217,6 +322,7 @@ export default function UploadPage() {
           rubatoSections: [],
           barNumbers: [],
         });
+        // Reset files
         setFiles({
           fullScore: {
             baseXML: null,
