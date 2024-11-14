@@ -52,10 +52,19 @@ export default function UploadPage() {
   // Modify handleChange to accept name, value, and type
   const handleFormDataChange = (name, value, type) => {
     console.log('handleFormDataChange called with', { name, value, type });
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: type === 'number' ? Number(value) : value,
-    }));
+    setFormData((prevFormData) => {
+      let processedValue = value;
+      
+      // Special handling for numbers
+      if (type === 'number' && value !== '') {
+        processedValue = Number(value);
+      }
+      
+      return {
+        ...prevFormData,
+        [name]: processedValue
+      };
+    });
   };
 
   // Handle input changes for array fields
@@ -153,8 +162,9 @@ export default function UploadPage() {
     }
 
     try {
-      // Instead of using FormData, let's first try sending just the basic info as JSON
+      // Include all form data in the request
       const formDataObj = {
+        // Basic Info
         composerLastName: formData.composerLastName.trim(),
         composerFullName: formData.composerFullName.trim(),
         title: formData.title.trim(),
@@ -162,6 +172,14 @@ export default function UploadPage() {
         key: formData.key,
         movementNumber: formData.movementNumber,
         instrumentOrVoiceType: formData.instrumentOrVoiceType,
+        
+        // Timing Info
+        duration: formData.duration,
+        preSelectedTempo: formData.preSelectedTempo,
+        cadenzaTimeFrames: formData.cadenzaTimeFrames,
+        rehearsalNumbers: formData.rehearsalNumbers,
+        rubatoSections: formData.rubatoSections,
+        barNumbers: formData.barNumbers,
       };
 
       console.log('Sending data to server:', formDataObj);
