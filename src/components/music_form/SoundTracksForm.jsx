@@ -64,7 +64,7 @@ export default function SoundTracksForm({ files, handleFileChange, addFilesArray
                   className={labelClassName}
                 >
                   WAV File
-                  <span className="text-gray-500 text-xs ml-2">(Required)</span>
+                  <span className="text-gray-500 text-xs ml-2">(Optional)</span>
                 </label>
                 <input
                   type="file"

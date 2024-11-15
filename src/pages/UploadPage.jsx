@@ -200,8 +200,9 @@ export default function UploadPage() {
         partScore: {
           xmlSoloParts: [],
         },
-        // Add soundTracks array to store uploaded URLs
         soundTracks: [],
+        // Add userInputs array to store uploaded URLs
+        userInputs: [],
       };
 
       // Upload base XML if exists
@@ -306,7 +307,61 @@ export default function UploadPage() {
         }
       }
 
-      // Prepare the complete form data with file URLs
+      // Upload user inputs if they exist
+      if (files.userInputs.length > 0) {
+        for (const input of files.userInputs) {
+          const inputUrls = {};
+
+          // Upload raw recording if exists
+          if (input.rawRecording) {
+            const recordingFormData = new FormData();
+            recordingFormData.append('recording', input.rawRecording);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadRecording`, {
+              method: 'POST',
+              body: recordingFormData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+              inputUrls.rawRecording = data.url;
+            }
+          }
+
+          // Upload reverb added recording if exists
+          if (input.reverbAdded) {
+            const reverbFormData = new FormData();
+            reverbFormData.append('recording', input.reverbAdded);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadRecording`, {
+              method: 'POST',
+              body: reverbFormData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+              inputUrls.reverbAdded = data.url;
+            }
+          }
+
+          // Upload noise cancelled recording if exists
+          if (input.noiseCancelled) {
+            const noiseFormData = new FormData();
+            noiseFormData.append('recording', input.noiseCancelled);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadRecording`, {
+              method: 'POST',
+              body: noiseFormData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+              inputUrls.noiseCancelled = data.url;
+            }
+          }
+
+          // Add input URLs to the array if any file was uploaded
+          if (inputUrls.rawRecording || inputUrls.reverbAdded || inputUrls.noiseCancelled) {
+            uploadedUrls.userInputs.push(inputUrls);
+          }
+        }
+      }
+
+      // Update the formDataObj to include userInputs
       const formDataObj = {
         // Basic Info
         composerLastName: formData.composerLastName.trim(),
@@ -326,9 +381,13 @@ export default function UploadPage() {
         barNumbers: formData.barNumbers,
 
         // Score URLs
-        scores: uploadedUrls,
-        // Add soundTracks to the form data
+        scores: {
+          fullScore: uploadedUrls.fullScore,
+          partScore: uploadedUrls.partScore,
+        },
+        // Add soundTracks and userInputs to the form data
         soundTracks: uploadedUrls.soundTracks,
+        userInputs: uploadedUrls.userInputs,
       };
 
       console.log('Sending data to server:', formDataObj);
@@ -376,7 +435,7 @@ export default function UploadPage() {
             xmlSoloParts: [],
           },
           soundTracks: [],
-          userInputs: [],
+          userInputs: [], // Reset userInputs array
           recordingOutputsPreAdjusted: [],
           pitchMatch: {
             userInput: null,
