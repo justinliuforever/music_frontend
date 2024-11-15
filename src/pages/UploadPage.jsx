@@ -104,12 +104,18 @@ export default function UploadPage() {
   };
 
   // Handle file changes
-  const handleFileChange = (e, sectionName, fieldName, index = null) => {
+  const handleFileChange = (e, sectionName, fieldName = null, index = null) => {
     // Handle multiple files
     if (e.target.multiple) {
       const files = Array.from(e.target.files);
-      setFiles((prevFiles) => {
-        if (index !== null) {
+      setFiles(prevFiles => {
+        if (sectionName === 'recordingOutputsPreAdjusted') {
+          // Direct array update for recordingOutputsPreAdjusted
+          return {
+            ...prevFiles,
+            [sectionName]: files
+          };
+        } else if (index !== null) {
           // For nested arrays like soundTracks and userInputs
           const updatedArray = [...prevFiles[sectionName]];
           updatedArray[index] = {
@@ -121,7 +127,7 @@ export default function UploadPage() {
             [sectionName]: updatedArray,
           };
         } else if (fieldName === 'editedXMLs' || fieldName === 'xmlSoloParts') {
-          // For arrays of files
+          // For arrays of files in scores
           return {
             ...prevFiles,
             [sectionName]: {
@@ -130,12 +136,19 @@ export default function UploadPage() {
             },
           };
         }
+        return prevFiles;
       });
     } else {
       // Handle single file
       const file = e.target.files[0];
-      setFiles((prevFiles) => {
-        if (index !== null) {
+      setFiles(prevFiles => {
+        if (fieldName === null) {
+          // Direct update for simple file fields
+          return {
+            ...prevFiles,
+            [sectionName]: file
+          };
+        } else if (index !== null) {
           // For nested arrays like soundTracks and userInputs
           const updatedArray = [...prevFiles[sectionName]];
           updatedArray[index] = {
@@ -146,7 +159,17 @@ export default function UploadPage() {
             ...prevFiles,
             [sectionName]: updatedArray,
           };
+        } else if (sectionName === 'pitchMatch') {
+          // Special handling for pitchMatch
+          return {
+            ...prevFiles,
+            [sectionName]: {
+              ...prevFiles[sectionName],
+              [fieldName]: file,
+            },
+          };
         } else {
+          // For other nested objects like fullScore
           return {
             ...prevFiles,
             [sectionName]: {
@@ -203,6 +226,12 @@ export default function UploadPage() {
         soundTracks: [],
         // Add userInputs array to store uploaded URLs
         userInputs: [],
+        // Add additional files URLs
+        recordingOutputsPreAdjusted: [],
+        pitchMatch: {
+          userInput: null,
+          originalTrack: null,
+        },
       };
 
       // Upload base XML if exists
@@ -361,6 +390,49 @@ export default function UploadPage() {
         }
       }
 
+      // Upload recordingOutputsPreAdjusted if they exist
+      if (files.recordingOutputsPreAdjusted.length > 0) {
+        for (const recording of files.recordingOutputsPreAdjusted) {
+          const recordingFormData = new FormData();
+          recordingFormData.append('recording', recording);
+          const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadRecording`, {
+            method: 'POST',
+            body: recordingFormData,
+          });
+          const data = await response.json();
+          if (response.ok) {
+            uploadedUrls.recordingOutputsPreAdjusted.push(data.url);
+          }
+        }
+      }
+
+      // Upload pitchMatch files if they exist
+      if (files.pitchMatch.userInput) {
+        const userInputFormData = new FormData();
+        userInputFormData.append('recording', files.pitchMatch.userInput);
+        const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadRecording`, {
+          method: 'POST',
+          body: userInputFormData,
+        });
+        const data = await response.json();
+        if (response.ok) {
+          uploadedUrls.pitchMatch.userInput = data.url;
+        }
+      }
+
+      if (files.pitchMatch.originalTrack) {
+        const originalTrackFormData = new FormData();
+        originalTrackFormData.append('recording', files.pitchMatch.originalTrack);
+        const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadRecording`, {
+          method: 'POST',
+          body: originalTrackFormData,
+        });
+        const data = await response.json();
+        if (response.ok) {
+          uploadedUrls.pitchMatch.originalTrack = data.url;
+        }
+      }
+
       // Update the formDataObj to include userInputs
       const formDataObj = {
         // Basic Info
@@ -388,6 +460,9 @@ export default function UploadPage() {
         // Add soundTracks and userInputs to the form data
         soundTracks: uploadedUrls.soundTracks,
         userInputs: uploadedUrls.userInputs,
+        // Add additional files data
+        recordingOutputsPreAdjusted: uploadedUrls.recordingOutputsPreAdjusted,
+        pitchMatch: uploadedUrls.pitchMatch,
       };
 
       console.log('Sending data to server:', formDataObj);
