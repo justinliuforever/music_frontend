@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import AdditionalFilesForm from '../components/music_form/AdditionalFilesForm';
 import BasicInfoForm from '../components/music_form/BasicInfoForm';
+import Header from '../components/Header';
 import { REACT_APP_API_URL } from '../../config';
 import ScoresForm from '../components/music_form/ScoresForm';
 import SoundTracksForm from '../components/music_form/SoundTracksForm';
@@ -483,6 +484,7 @@ export default function UploadPage() {
       if (response.ok) {
         console.log('Upload successful');
         alert('Upload successful!');
+        
         // Reset form data
         setFormData({
           composerLastName: '',
@@ -499,8 +501,9 @@ export default function UploadPage() {
           rubatoSections: [],
           barNumbers: [],
         });
-        // Reset files
-        setFiles({
+
+        // Reset files with explicit null values for all fields
+        setFiles(prevFiles => ({
           fullScore: {
             baseXML: null,
             editedXMLs: [],
@@ -510,13 +513,19 @@ export default function UploadPage() {
             xmlSoloParts: [],
           },
           soundTracks: [],
-          userInputs: [], // Reset userInputs array
+          userInputs: [],
+          // Explicitly reset additional files
           recordingOutputsPreAdjusted: [],
           pitchMatch: {
             userInput: null,
             originalTrack: null,
           },
-        });
+        }));
+
+        // Force a re-render of the form components
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+        }, 100);
       } else {
         console.error('Upload failed:', responseData.msg);
         alert(`Upload failed: ${responseData.msg}`);
@@ -528,58 +537,61 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-4xl font-bold text-gray-900 mb-8">Upload Music</h2>
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Information Form */}
-        <BasicInfoForm formData={formData} handleChange={handleFormDataChange} />
+    <>
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-4xl font-bold text-gray-900 mb-8">Upload Music</h2>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Information Form */}
+          <BasicInfoForm formData={formData} handleChange={handleFormDataChange} />
 
-        {/* Timing Information Form */}
-        <TimingInfoForm
-          formData={formData}
-          handleChange={handleFormDataChange}
-          handleArrayChange={handleArrayChange}
-          addArrayItem={addArrayItem}
-          removeArrayItem={removeArrayItem}
-        />
+          {/* Timing Information Form */}
+          <TimingInfoForm
+            formData={formData}
+            handleChange={handleFormDataChange}
+            handleArrayChange={handleArrayChange}
+            addArrayItem={addArrayItem}
+            removeArrayItem={removeArrayItem}
+          />
 
-        {/* Scores Form */}
-        <ScoresForm files={files} handleFileChange={handleFileChange} />
+          {/* Scores Form */}
+          <ScoresForm files={files} handleFileChange={handleFileChange} />
 
-        {/* Sound Tracks Form */}
-        <SoundTracksForm
-          files={files}
-          handleFileChange={handleFileChange}
-          addFilesArrayItem={addFilesArrayItem}
-          removeFilesArrayItem={removeFilesArrayItem}
-        />
+          {/* Sound Tracks Form */}
+          <SoundTracksForm
+            files={files}
+            handleFileChange={handleFileChange}
+            addFilesArrayItem={addFilesArrayItem}
+            removeFilesArrayItem={removeFilesArrayItem}
+          />
 
-        {/* User Inputs Form */}
-        <UserInputsForm
-          files={files}
-          handleFileChange={handleFileChange}
-          addFilesArrayItem={addFilesArrayItem}
-          removeFilesArrayItem={removeFilesArrayItem}
-        />
+          {/* User Inputs Form */}
+          <UserInputsForm
+            files={files}
+            handleFileChange={handleFileChange}
+            addFilesArrayItem={addFilesArrayItem}
+            removeFilesArrayItem={removeFilesArrayItem}
+          />
 
-        {/* Additional Files Form */}
-        <AdditionalFilesForm
-          files={files}
-          handleFileChange={handleFileChange}
-          addFilesArrayItem={addFilesArrayItem}
-          removeFilesArrayItem={removeFilesArrayItem}
-        />
+          {/* Additional Files Form */}
+          <AdditionalFilesForm
+            files={files}
+            handleFileChange={handleFileChange}
+            addFilesArrayItem={addFilesArrayItem}
+            removeFilesArrayItem={removeFilesArrayItem}
+          />
 
-        {/* Submit Button */}
-        <div>
-          <button
-            type="submit"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            Submit
-          </button>
-        </div>
-      </form>
-    </div>
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
   );
 }

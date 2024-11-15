@@ -1,17 +1,20 @@
 import Header from "../components/Header";
-// MainPage.jsx
-//import React from 'react';
-import TotalList from '../components/TotalList'; // Adjust the import path based on your actual project structure
+import TotalList from '../components/TotalList';
 
 function MusicLibraryPage() {
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Header />
-
-      <h1 className="text-2xl font-bold text-center my-8">Music Library</h1>
       
-      <div className="py-6 px-5">
-        <TotalList />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Music Library</h1>
+          {/* might add search/filter controls here later */}
+        </div>
+        
+        <div className="bg-white rounded-lg shadow">
+          <TotalList />
+        </div>
       </div>
     </div>
   );

@@ -1,136 +1,318 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import Header from '../components/Header';
 import ImageCarousel from '../components/ImageCarousel';
-//import { PaperClipIcon } from '@heroicons/react/20/solid';
-import{REACT_APP_API_URL} from '../../config.js';
+import { REACT_APP_API_URL } from '../../config.js';
 
 function DetailPage() {
   const { id } = useParams();
   const [musicDetail, setMusicDetail] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${REACT_APP_API_URL}/music/${id}`)
       .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
       })
-      .then(data => setMusicDetail(data))
+      .then(data => {
+        setMusicDetail(data);
+        setEditedData(data);
+      })
       .catch(error => console.error('Error fetching music detail:', error));
   }, [id]);
 
-  // Function to handle the delete action
+  const handleInputChange = (e) => {
+    const { name, value, type } = e.target;
+    setEditedData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? (value === '' ? null : Number(value)) : value
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`${REACT_APP_API_URL}/music/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedData),
+      });
+
+      if (!response.ok) throw new Error('Failed to update');
+      
+      const updatedData = await response.json();
+      setMusicDetail(updatedData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating:', error);
+      alert('Failed to update the information');
+    }
+  };
+
   const handleDelete = () => {
-    fetch(`${REACT_APP_API_URL}/music/${id}`, {
-      method: 'DELETE', // Specify the method
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Error deleting the music track');
-      }
-      return response.json(); // or handle it as needed if the response is not JSON
-    })
-    .then(() => {
-      // Here you might want to navigate back to the list page or show a success message
-      navigate('/music/library'); // Redirect to the homepage or list page as per your route settings
-    })
-    .catch(error => console.error('Error deleting music track:', error));
+    if (window.confirm('Are you sure you want to delete this music piece?')) {
+      fetch(`${REACT_APP_API_URL}/music/${id}`, {
+        method: 'DELETE',
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error deleting the music track');
+        navigate('/music/library');
+      })
+      .catch(error => console.error('Error deleting music track:', error));
+    }
   };
 
-  const handleBackToMain = () => {
-    navigate('/music/library'); // Adjust this as necessary for your main page's route
-  };
+  if (!musicDetail) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+  );
 
-
-
-  if (!musicDetail) return <div>Loading...</div>;
+  const inputClassName = `
+    block w-full px-3 py-2 rounded-md
+    border border-gray-300
+    focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+    transition duration-150 ease-in-out
+    disabled:bg-gray-100 disabled:text-gray-500
+  `;
 
   return (
-    <div className="overflow-hidden bg-white shadow sm:rounded-lg">
-      <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">{musicDetail.title} - Details</h3>
-        <p className="mt-1 max-w-2xl text-sm text-gray-500">{musicDetail.artist}</p>
-      </div>
-      <div className="border-t border-gray-200">
-        <dl className="sm:divide-y sm:divide-gray-200">
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Album</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{musicDetail.album}</dd>
-          </div>
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Year</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{musicDetail.year}</dd>
-          </div>
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Genre</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{musicDetail.genre.join(', ')}</dd>
-          </div>
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Duration</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{musicDetail.duration}</dd>
-          </div>
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Description</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{musicDetail.description}</dd>
-          </div>
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Likes</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{musicDetail.likes}</dd>
-          </div>
-          {/* Assuming you want to display the music picture and a link to listen to the music */}
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Music Cover</dt>
-            <dd className="mt-1 sm:col-span-2 sm:mt-0">
-              <img src={musicDetail.musicPictureURL} alt="Music Cover" className="w-48 h-auto rounded-md" />
-            </dd>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          {/* Header Section */}
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">{musicDetail.title}</h3>
+                <p className="mt-1 text-sm text-gray-500">By {musicDetail.composerFullName}</p>
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => navigate('/music/library')}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Back
+                </button>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleSave}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedData(musicDetail);
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Music FullScore</dt>
-            <dd className="mt-1 sm:col-span-2 sm:mt-0">
-            {musicDetail && musicDetail.musicScore && musicDetail.musicScore.fullScore && (
-            <ImageCarousel images={musicDetail.musicScore.fullScore} />
+          {/* Basic Information */}
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-medium text-gray-900">Basic Information</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Composer Information */}
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h5 className="text-md font-semibold text-gray-700 mb-4">Composer Details</h5>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Composer Last Name</label>
+                      <input
+                        type="text"
+                        name="composerLastName"
+                        value={editedData.composerLastName}
+                        onChange={handleInputChange}
+                        disabled={!isEditing}
+                        className={inputClassName}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Composer Full Name</label>
+                      <input
+                        type="text"
+                        name="composerFullName"
+                        value={editedData.composerFullName}
+                        onChange={handleInputChange}
+                        disabled={!isEditing}
+                        className={inputClassName}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Composition Information */}
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <h5 className="text-md font-semibold text-gray-700 mb-4">Composition Details</h5>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Title</label>
+                      <input
+                        type="text"
+                        name="title"
+                        value={editedData.title}
+                        onChange={handleInputChange}
+                        disabled={!isEditing}
+                        className={inputClassName}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Opus Number</label>
+                      <input
+                        type="text"
+                        name="opusNumber"
+                        value={editedData.opusNumber || ''}
+                        onChange={handleInputChange}
+                        disabled={!isEditing}
+                        className={inputClassName}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div className="mt-8 bg-gray-50 p-6 rounded-lg">
+              <h5 className="text-md font-semibold text-gray-700 mb-4">Additional Details</h5>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Key</label>
+                  <input
+                    type="text"
+                    name="key"
+                    value={editedData.key || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className={inputClassName}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Movement Number</label>
+                  <input
+                    type="number"
+                    name="movementNumber"
+                    value={editedData.movementNumber || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className={inputClassName}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Instrument/Voice Type</label>
+                  <input
+                    type="text"
+                    name="instrumentOrVoiceType"
+                    value={editedData.instrumentOrVoiceType || ''}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className={inputClassName}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Timing Information */}
+          {(musicDetail.preSelectedTempo || musicDetail.cadenzaTimeFrames?.length > 0 || 
+            musicDetail.rehearsalNumbers?.length > 0 || musicDetail.rubatoSections?.length > 0 || 
+            musicDetail.barNumbers?.length > 0) && (
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Timing Information</h4>
+              <dl className="grid grid-cols-1 gap-4">
+                {musicDetail.preSelectedTempo && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Pre-selected Tempo</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{musicDetail.preSelectedTempo}</dd>
+                  </div>
+                )}
+                {musicDetail.cadenzaTimeFrames?.length > 0 && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Cadenza Time Frames</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      <ul className="list-disc pl-5">
+                        {musicDetail.cadenzaTimeFrames.map((frame, index) => (
+                          <li key={index}>
+                            {frame.beginning} - {frame.ending}
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
+                {/* Add other timing information sections as needed */}
+              </dl>
+            </div>
           )}
-            </dd>
-          </div>
 
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Music Piano Reduction</dt>
-            <dd className="mt-1 sm:col-span-2 sm:mt-0">
-            {musicDetail && musicDetail.musicScore && musicDetail.musicScore.pianoReduction && (
-            <ImageCarousel images={musicDetail.musicScore.pianoReduction} />
+          {/* Scores Section */}
+          {(musicDetail.fullScore || musicDetail.partScore) && (
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Scores</h4>
+              
+              {/* Full Score */}
+              {musicDetail.fullScore && (
+                <div className="mb-6">
+                  <h5 className="text-md font-medium text-gray-700 mb-2">Full Score</h5>
+                  <div className="space-y-4">
+                    {musicDetail.fullScore.baseXML && (
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Base XML:</span>
+                        <a 
+                          href={musicDetail.fullScore.baseXML} 
+                          className="ml-2 text-sm text-indigo-600 hover:text-indigo-500"
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          View File
+                        </a>
+                      </div>
+                    )}
+                    {/* Add other score sections */}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
-            </dd>
-          </div>
 
+          {/* Add sections for soundTracks, userInputs, etc. as needed */}
           
-          <div className="py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Listen</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-              <a href={musicDetail.musicAudioURL} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-500">Play Music</a>
-            </dd>
-          </div>
-          
-          {/* Add the delete button */}
-          <div className="flex justify-center p-4">
-            <button
-              onClick={handleBackToMain}
-              className="mt-6 inline-block rounded bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Back
-            </button>
-
-            <button
-              onClick={handleDelete}
-              className="mt-6 ml-4 inline-block rounded bg-slate-50 px-6 py-3 text-sm font-semibold text-indigo-600 shadow hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Delete
-            </button>
-          </div>
-        </dl>
+        </div>
       </div>
     </div>
   );

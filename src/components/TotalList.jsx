@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import { REACT_APP_API_URL } from '../../config.js';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 function TotalList() {
   const [musicData, setMusicData] = useState([]);
-  const navigate = useNavigate(); // Use the useNavigate hook here
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${REACT_APP_API_URL}/music/`)
@@ -15,39 +15,58 @@ function TotalList() {
   }, []);
 
   return (
-    <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-6 gap-y-8 xl:gap-x-8">
-      {musicData.map((music) => (
-        // Wrap the li content in a div and add onClick event handler to navigate
-        <li key={music._id} className="overflow-hidden rounded-xl border border-gray-200 shadow-lg w-full max-w-xs mx-auto cursor-pointer">
-          <div onClick={() => navigate(`/music/library/${music._id}`)} className="flex flex-col items-center justify-center p-6">
-            <img
-              src={music.musicPictureURL}
-              alt={music.title}
-              className="h-48 w-48 flex-none rounded-lg bg-white object-cover ring-1 ring-gray-900/10 mb-4"
-            />
-            <div className="text-lg font-medium leading-6 text-gray-900">{music.title}</div>
-            <div className="text-sm text-gray-500">{music.artist}</div>
-          </div>
-          <dl className="border-t border-gray-200 px-4 py-5 text-sm leading-6">
-            <div className="flex justify-between">
-              <dt className="font-medium text-gray-500">Album</dt>
-              <dd className="text-gray-900">{music.album}</dd>
-            </div>
-            <div className="flex justify-between mt-2">
-              <dt className="font-medium text-gray-500">Year</dt>
-              <dd className="text-gray-900">{music.year}</dd>
-            </div>
-            <div className="flex justify-between mt-2">
-              <dt className="font-medium text-gray-500">Genre</dt>
-              <dd className="text-gray-900">{music.genre.join(', ')}</dd>
-            </div>
-          </dl>
-        </li>
-      ))}
-    </ul>
+    <div className="overflow-hidden">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Title & Composer
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Details
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Duration
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Last Updated
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {musicData.map((music) => (
+            <tr 
+              key={music._id}
+              onClick={() => navigate(`/music/library/${music._id}`)}
+              className="hover:bg-gray-50 cursor-pointer transition-colors"
+            >
+              <td className="px-6 py-4">
+                <div className="flex flex-col">
+                  <div className="text-sm font-medium text-gray-900">{music.title}</div>
+                  <div className="text-sm text-gray-500">{music.composerFullName}</div>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex flex-col text-sm text-gray-500">
+                  {music.opusNumber && <span>Opus: {music.opusNumber}</span>}
+                  {music.key && <span>Key: {music.key}</span>}
+                  {music.instrumentOrVoiceType && (
+                    <span className="truncate">{music.instrumentOrVoiceType}</span>
+                  )}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {music.duration || '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {new Date(music.updatedAt).toLocaleDateString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
-
-
 
 export default TotalList;
