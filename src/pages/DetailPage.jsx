@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import ImageCarousel from '../components/ImageCarousel';
 import { REACT_APP_API_URL } from '../../config.js';
 import ScoresForm from '../components/music_form/ScoresForm';
+import TimingInfoForm from '../components/music_form/TimingInfoForm';
 
 function DetailPage() {
   const { id } = useParams();
@@ -21,8 +22,15 @@ function DetailPage() {
         return response.json();
       })
       .then(data => {
-        setMusicDetail(data);
-        setEditedData(data);
+        const initializedData = {
+          ...data,
+          cadenzaTimeFrames: data.cadenzaTimeFrames || [],
+          rehearsalNumbers: data.rehearsalNumbers || [],
+          rubatoSections: data.rubatoSections || [],
+          barNumbers: data.barNumbers || []
+        };
+        setMusicDetail(initializedData);
+        setEditedData(initializedData);
       })
       .catch(error => console.error('Error fetching music detail:', error));
   }, [id]);
@@ -153,6 +161,40 @@ function DetailPage() {
     }
   };
 
+  const handleArrayChange = (e, index, arrayName, subField = null) => {
+    setEditedData(prev => {
+      const newArray = [...prev[arrayName]];
+      if (subField) {
+        // For nested objects like cadenzaTimeFrames
+        newArray[index] = {
+          ...newArray[index],
+          [subField]: e.target.value
+        };
+      } else {
+        // For simple arrays like rehearsalNumbers
+        newArray[index] = e.target.value;
+      }
+      return {
+        ...prev,
+        [arrayName]: newArray
+      };
+    });
+  };
+
+  const addArrayItem = (arrayName, defaultValue) => {
+    setEditedData(prev => ({
+      ...prev,
+      [arrayName]: [...prev[arrayName], defaultValue]
+    }));
+  };
+
+  const removeArrayItem = (arrayName, index) => {
+    setEditedData(prev => ({
+      ...prev,
+      [arrayName]: prev[arrayName].filter((_, i) => i !== index)
+    }));
+  };
+
   if (!musicDetail) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -208,6 +250,16 @@ function DetailPage() {
             title="Music Information"
           />
           
+          <TimingInfoForm
+            formData={editedData}
+            handleChange={handleInputChange}
+            handleArrayChange={handleArrayChange}
+            addArrayItem={addArrayItem}
+            removeArrayItem={removeArrayItem}
+            isEditing={isEditing}
+            title="Timing Information"
+          />
+          
           <ScoresForm
             files={editedData}
             handleFileChange={handleFileChange}
@@ -215,7 +267,6 @@ function DetailPage() {
             title="Score Files"
           />
           
-          {/* Other forms... */}
         </div>
       </div>
     </div>
