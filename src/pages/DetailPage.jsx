@@ -8,6 +8,7 @@ import { REACT_APP_API_URL } from '../../config.js';
 import ScoresForm from '../components/music_form/ScoresForm';
 import SoundTracksForm from '../components/music_form/SoundTracksForm';
 import TimingInfoForm from '../components/music_form/TimingInfoForm';
+import UserInputsForm from '../components/music_form/UserInputsForm';
 
 function DetailPage() {
   const { id } = useParams();
@@ -28,7 +29,8 @@ function DetailPage() {
           cadenzaTimeFrames: data.cadenzaTimeFrames || [],
           rehearsalNumbers: data.rehearsalNumbers || [],
           rubatoSections: data.rubatoSections || [],
-          barNumbers: data.barNumbers || []
+          barNumbers: data.barNumbers || [],
+          userInputs: data.userInputs || []
         };
         setMusicDetail(initializedData);
         setEditedData(initializedData);
@@ -51,6 +53,13 @@ function DetailPage() {
       setEditedData(prev => ({
         ...prev,
         soundTracks: Array.from(files).map(file => ({
+          [field]: file
+        }))
+      }));
+    } else if (section === 'userInputs') {
+      setEditedData(prev => ({
+        ...prev,
+        userInputs: Array.from(files).map(file => ({
           [field]: file
         }))
       }));
@@ -129,6 +138,20 @@ function DetailPage() {
               filesToDelete.push(oldTrack.midi);
             }
           }
+        });
+      }
+
+      // Add userInputs file checking
+      if (musicDetail.userInputs && editedData.userInputs) {
+        musicDetail.userInputs.forEach((oldInput, index) => {
+          ['rawRecording', 'reverbAdded', 'noiseCancelled'].forEach(field => {
+            if (oldInput[field] && 
+                (!editedData.userInputs[index] || 
+                 editedData.userInputs[index][field] instanceof File ||
+                 editedData.userInputs[index][field] !== oldInput[field])) {
+              filesToDelete.push(oldInput[field]);
+            }
+          });
         });
       }
 
@@ -241,6 +264,34 @@ function DetailPage() {
         updatedFiles.soundTracks = newSoundTracks;
       }
 
+      // Add userInputs file upload handling
+      if (updatedFiles.userInputs) {
+        const newUserInputs = [];
+        for (const input of updatedFiles.userInputs) {
+          const newInput = {};
+          
+          for (const field of ['rawRecording', 'reverbAdded', 'noiseCancelled']) {
+            if (input[field] instanceof File) {
+              const formData = new FormData();
+              formData.append('track', input[field]);
+              const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+                method: 'POST',
+                body: formData,
+              });
+              const result = await response.json();
+              newInput[field] = result.url;
+            } else if (input[field]) {
+              newInput[field] = input[field];
+            }
+          }
+
+          if (Object.keys(newInput).length > 0) {
+            newUserInputs.push(newInput);
+          }
+        }
+        updatedFiles.userInputs = newUserInputs;
+      }
+
       // Delete old files from Firebase
       for (const fileUrl of filesToDelete) {
         try {
@@ -325,6 +376,25 @@ function DetailPage() {
     }));
   };
 
+  // Add these helper functions for userInputs array handling
+  const addFilesArrayItem = (arrayName) => {
+    setEditedData(prev => ({
+      ...prev,
+      [arrayName]: [...(prev[arrayName] || []), {
+        rawRecording: null,
+        reverbAdded: null,
+        noiseCancelled: null
+      }]
+    }));
+  };
+
+  const removeFilesArrayItem = (arrayName, field, index) => {
+    setEditedData(prev => ({
+      ...prev,
+      [arrayName]: prev[arrayName].filter((_, i) => i !== index)
+    }));
+  };
+
   if (!musicDetail) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -402,6 +472,13 @@ function DetailPage() {
             handleFileChange={handleFileChange}
             isEditing={isEditing}
             title="Sound Tracks"
+          />
+          
+          <UserInputsForm
+            files={editedData}
+            handleFileChange={handleFileChange}
+            isEditing={isEditing}
+            title="User Recordings"
           />
         </div>
       </div>
