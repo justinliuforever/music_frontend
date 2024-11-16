@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import AdditionalFilesForm from '../components/music_form/AdditionalFilesForm';
 import BasicInfoForm from '../components/music_form/BasicInfoForm';
 import Header from '../components/Header';
 import ImageCarousel from '../components/ImageCarousel';
@@ -30,7 +31,12 @@ function DetailPage() {
           rehearsalNumbers: data.rehearsalNumbers || [],
           rubatoSections: data.rubatoSections || [],
           barNumbers: data.barNumbers || [],
-          userInputs: data.userInputs || []
+          userInputs: data.userInputs || [],
+          recordingOutputsPreAdjusted: data.recordingOutputsPreAdjusted || [],
+          pitchMatch: {
+            userInput: data.pitchMatch?.userInput || null,
+            originalTrack: data.pitchMatch?.originalTrack || null,
+          }
         };
         setMusicDetail(initializedData);
         setEditedData(initializedData);
@@ -49,7 +55,20 @@ function DetailPage() {
     const files = e.target.files;
     if (!files) return;
 
-    if (section === 'soundTracks') {
+    if (section === 'recordingOutputsPreAdjusted') {
+      setEditedData(prev => ({
+        ...prev,
+        recordingOutputsPreAdjusted: Array.from(files)
+      }));
+    } else if (section === 'pitchMatch') {
+      setEditedData(prev => ({
+        ...prev,
+        pitchMatch: {
+          ...prev.pitchMatch,
+          [field]: files[0]
+        }
+      }));
+    } else if (section === 'soundTracks') {
       setEditedData(prev => ({
         ...prev,
         soundTracks: Array.from(files).map(file => ({
@@ -292,6 +311,26 @@ function DetailPage() {
         updatedFiles.userInputs = newUserInputs;
       }
 
+      // Inside handleSave function, add this section for handling recordingOutputsPreAdjusted files
+      if (updatedFiles.recordingOutputsPreAdjusted) {
+        const newRecordingOutputs = [];
+        for (const file of updatedFiles.recordingOutputsPreAdjusted) {
+          if (file instanceof File) {
+            const formData = new FormData();
+            formData.append('track', file);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+              method: 'POST',
+              body: formData,
+            });
+            const result = await response.json();
+            newRecordingOutputs.push(result.url);
+          } else {
+            newRecordingOutputs.push(file);
+          }
+        }
+        updatedFiles.recordingOutputsPreAdjusted = newRecordingOutputs;
+      }
+
       // Delete old files from Firebase
       for (const fileUrl of filesToDelete) {
         try {
@@ -479,6 +518,13 @@ function DetailPage() {
             handleFileChange={handleFileChange}
             isEditing={isEditing}
             title="User Recordings"
+          />
+          
+          <AdditionalFilesForm
+            files={editedData}
+            handleFileChange={handleFileChange}
+            isEditing={isEditing}
+            title="Additional Files"
           />
         </div>
       </div>
