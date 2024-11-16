@@ -52,10 +52,9 @@ export default function ScoresForm({
       }
     };
 
-    const fileName = getFileName(url);
-    
     return (
       <a
+        key={url}
         href={url}
         target="_blank"
         rel="noopener noreferrer"
@@ -64,7 +63,7 @@ export default function ScoresForm({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
-        {fileName}
+        {getFileName(url)}
       </a>
     );
   };
@@ -119,7 +118,7 @@ export default function ScoresForm({
             ) : (
               <div className="space-y-2">
                 {files.fullScore?.editedXMLs?.map((url, index) => (
-                  renderFileLink(url, `Edited XML ${index + 1}`)
+                  <div key={url}>{renderFileLink(url, `Edited XML ${index + 1}`)}</div>
                 ))}
               </div>
             )}
@@ -169,7 +168,7 @@ export default function ScoresForm({
             ) : (
               <div className="space-y-2">
                 {files.partScore?.xmlSoloParts?.map((url, index) => (
-                  renderFileLink(url, `Solo Part ${index + 1}`)
+                  <div key={url}>{renderFileLink(url, `Solo Part ${index + 1}`)}</div>
                 ))}
               </div>
             )}
@@ -185,29 +184,45 @@ ScoresForm.propTypes = {
     fullScore: PropTypes.shape({
       baseXML: PropTypes.oneOfType([
         PropTypes.string,
-        PropTypes.object,
+        PropTypes.instanceOf(File),
         PropTypes.oneOf([null])
       ]),
       editedXMLs: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.string),
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.arrayOf(PropTypes.instanceOf(File))
+        PropTypes.arrayOf(PropTypes.instanceOf(File)),
+        PropTypes.oneOf([null, undefined])
       ]),
       pdf: PropTypes.oneOfType([
         PropTypes.string,
-        PropTypes.object,
+        PropTypes.instanceOf(File),
         PropTypes.oneOf([null])
       ]),
     }),
     partScore: PropTypes.shape({
       xmlSoloParts: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.string),
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.arrayOf(PropTypes.instanceOf(File))
+        PropTypes.arrayOf(PropTypes.instanceOf(File)),
+        PropTypes.oneOf([null, undefined]),
+        PropTypes.array
       ]),
     }),
-  }).isRequired,
+  }),
   handleFileChange: PropTypes.func.isRequired,
   isEditing: PropTypes.bool,
   title: PropTypes.string,
+};
+
+ScoresForm.defaultProps = {
+  files: {
+    fullScore: {
+      baseXML: null,
+      editedXMLs: [],
+      pdf: null
+    },
+    partScore: {
+      xmlSoloParts: []
+    }
+  },
+  isEditing: false,
+  title: "Scores"
 };

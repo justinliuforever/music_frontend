@@ -27,6 +27,16 @@ function DetailPage() {
       .then(data => {
         const initializedData = {
           ...data,
+          fullScore: {
+            baseXML: data.fullScore?.baseXML || null,
+            editedXMLs: data.fullScore?.editedXMLs || [],
+            pdf: data.fullScore?.pdf || null
+          },
+          partScore: {
+            xmlSoloParts: Array.isArray(data.partScore?.xmlSoloParts) 
+              ? data.partScore.xmlSoloParts 
+              : []
+          },
           cadenzaTimeFrames: data.cadenzaTimeFrames || [],
           rehearsalNumbers: data.rehearsalNumbers || [],
           rubatoSections: data.rubatoSections || [],
@@ -131,8 +141,15 @@ function DetailPage() {
 
       // Check partScore files
       if (musicDetail.partScore?.xmlSoloParts && editedData.partScore?.xmlSoloParts) {
-        musicDetail.partScore.xmlSoloParts.forEach(oldUrl => {
-          if (!editedData.partScore.xmlSoloParts.includes(oldUrl)) {
+        const oldFiles = Array.isArray(musicDetail.partScore.xmlSoloParts) 
+          ? musicDetail.partScore.xmlSoloParts 
+          : [];
+        const newFiles = Array.isArray(editedData.partScore.xmlSoloParts)
+          ? editedData.partScore.xmlSoloParts
+          : [];
+
+        oldFiles.forEach(oldUrl => {
+          if (!newFiles.includes(oldUrl)) {
             filesToDelete.push(oldUrl);
           }
         });
@@ -334,15 +351,19 @@ function DetailPage() {
       // Delete old files from Firebase
       for (const fileUrl of filesToDelete) {
         try {
-          await fetch(`${REACT_APP_API_URL}/firebase/deleteFile`, {
+          const response = await fetch(`${REACT_APP_API_URL}/firebase/deleteFile`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ url: fileUrl }),
           });
+          
+          if (!response.ok && response.status !== 404) {
+            console.warn(`Warning: Failed to delete file ${fileUrl}`);
+          }
         } catch (error) {
-          console.error('Error deleting old file:', error);
+          console.warn('Warning: Error during file deletion:', error);
           // Continue with other deletions even if one fails
         }
       }
