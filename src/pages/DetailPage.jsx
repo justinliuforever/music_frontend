@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import ImageCarousel from '../components/ImageCarousel';
 import { REACT_APP_API_URL } from '../../config.js';
 import ScoresForm from '../components/music_form/ScoresForm';
+import SoundTracksForm from '../components/music_form/SoundTracksForm';
 import TimingInfoForm from '../components/music_form/TimingInfoForm';
 
 function DetailPage() {
@@ -46,18 +47,92 @@ function DetailPage() {
     const files = e.target.files;
     if (!files) return;
 
-    setEditedData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: files.length === 1 ? files[0] : Array.from(files)
-      }
-    }));
+    if (section === 'soundTracks') {
+      setEditedData(prev => ({
+        ...prev,
+        soundTracks: Array.from(files).map(file => ({
+          [field]: file
+        }))
+      }));
+    } else {
+      setEditedData(prev => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: files.length === 1 ? files[0] : Array.from(files)
+        }
+      }));
+    }
   };
 
   const handleSave = async () => {
     try {
-      // First, upload any new files
+      // First, keep track of files that need to be deleted
+      const filesToDelete = [];
+      
+      // Helper function to compare old and new files
+      const compareAndMarkForDeletion = (oldUrl, newFile) => {
+        if (oldUrl && newFile instanceof File) {
+          filesToDelete.push(oldUrl);
+        }
+      };
+
+      // Check fullScore files
+      if (musicDetail.fullScore && editedData.fullScore) {
+        // Check baseXML
+        compareAndMarkForDeletion(
+          musicDetail.fullScore.baseXML,
+          editedData.fullScore.baseXML
+        );
+
+        // Check PDF
+        compareAndMarkForDeletion(
+          musicDetail.fullScore.pdf,
+          editedData.fullScore.pdf
+        );
+
+        // Check editedXMLs
+        if (musicDetail.fullScore.editedXMLs && editedData.fullScore.editedXMLs) {
+          musicDetail.fullScore.editedXMLs.forEach(oldUrl => {
+            if (!editedData.fullScore.editedXMLs.includes(oldUrl)) {
+              filesToDelete.push(oldUrl);
+            }
+          });
+        }
+      }
+
+      // Check partScore files
+      if (musicDetail.partScore?.xmlSoloParts && editedData.partScore?.xmlSoloParts) {
+        musicDetail.partScore.xmlSoloParts.forEach(oldUrl => {
+          if (!editedData.partScore.xmlSoloParts.includes(oldUrl)) {
+            filesToDelete.push(oldUrl);
+          }
+        });
+      }
+
+      // Check soundTracks
+      if (musicDetail.soundTracks && editedData.soundTracks) {
+        musicDetail.soundTracks.forEach(oldTrack => {
+          if (oldTrack.wav) {
+            const newTrackWithSameWav = editedData.soundTracks.find(
+              newTrack => newTrack.wav === oldTrack.wav
+            );
+            if (!newTrackWithSameWav) {
+              filesToDelete.push(oldTrack.wav);
+            }
+          }
+          if (oldTrack.midi) {
+            const newTrackWithSameMidi = editedData.soundTracks.find(
+              newTrack => newTrack.midi === oldTrack.midi
+            );
+            if (!newTrackWithSameMidi) {
+              filesToDelete.push(oldTrack.midi);
+            }
+          }
+        });
+      }
+
+      // Upload new files and get their URLs
       const updatedFiles = { ...editedData };
       
       // Handle fullScore files
@@ -127,7 +202,62 @@ function DetailPage() {
         updatedFiles.partScore.xmlSoloParts = newSoloParts;
       }
 
-      // Now update the database with the new file URLs
+      // Handle soundTracks
+      if (updatedFiles.soundTracks) {
+        const newSoundTracks = [];
+        for (const track of updatedFiles.soundTracks) {
+          const newTrack = {};
+          
+          if (track.wav instanceof File) {
+            const formData = new FormData();
+            formData.append('track', track.wav);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+              method: 'POST',
+              body: formData,
+            });
+            const result = await response.json();
+            newTrack.wav = result.url;
+          } else if (track.wav) {
+            newTrack.wav = track.wav;
+          }
+
+          if (track.midi instanceof File) {
+            const formData = new FormData();
+            formData.append('track', track.midi);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+              method: 'POST',
+              body: formData,
+            });
+            const result = await response.json();
+            newTrack.midi = result.url;
+          } else if (track.midi) {
+            newTrack.midi = track.midi;
+          }
+
+          if (Object.keys(newTrack).length > 0) {
+            newSoundTracks.push(newTrack);
+          }
+        }
+        updatedFiles.soundTracks = newSoundTracks;
+      }
+
+      // Delete old files from Firebase
+      for (const fileUrl of filesToDelete) {
+        try {
+          await fetch(`${REACT_APP_API_URL}/firebase/deleteFile`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: fileUrl }),
+          });
+        } catch (error) {
+          console.error('Error deleting old file:', error);
+          // Continue with other deletions even if one fails
+        }
+      }
+
+      // Update database with new data
       const response = await fetch(`${REACT_APP_API_URL}/music/${id}`, {
         method: 'PUT',
         headers: {
@@ -267,6 +397,12 @@ function DetailPage() {
             title="Score Files"
           />
           
+          <SoundTracksForm
+            files={editedData}
+            handleFileChange={handleFileChange}
+            isEditing={isEditing}
+            title="Sound Tracks"
+          />
         </div>
       </div>
     </div>
