@@ -63,7 +63,7 @@ function DetailPage() {
 
   const handleFileChange = async (e, section, field) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
     if (section === 'recordingOutputsPreAdjusted') {
       setEditedData(prev => ({
@@ -93,11 +93,12 @@ function DetailPage() {
         }))
       }));
     } else {
+      const isMultiple = e.target.multiple;
       setEditedData(prev => ({
         ...prev,
         [section]: {
           ...prev[section],
-          [field]: files.length === 1 ? files[0] : Array.from(files)
+          [field]: isMultiple ? Array.from(files) : files[0]
         }
       }));
     }
