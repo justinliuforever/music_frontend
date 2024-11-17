@@ -508,7 +508,7 @@ function DetailPage() {
             formData={editedData}
             handleChange={handleInputChange}
             isEditing={isEditing}
-            title="Music Information"
+            title="Basic Information"
           />
           
           <TimingInfoForm
@@ -532,14 +532,14 @@ function DetailPage() {
             files={editedData}
             handleFileChange={handleFileChange}
             isEditing={isEditing}
-            title="Sound Tracks"
+            title="Sound Track Files"
           />
           
           <UserInputsForm
             files={editedData}
             handleFileChange={handleFileChange}
             isEditing={isEditing}
-            title="User Recordings"
+            title="Recording Files"
           />
           
           <AdditionalFilesForm

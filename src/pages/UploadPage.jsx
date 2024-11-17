@@ -543,7 +543,11 @@ export default function UploadPage() {
         <h2 className="text-4xl font-bold text-gray-900 mb-8">Upload Music</h2>
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Form */}
-          <BasicInfoForm formData={formData} handleChange={handleFormDataChange} />
+          <BasicInfoForm 
+            formData={formData} 
+            handleChange={handleFormDataChange}
+            title="Basic Information" 
+          />
 
           {/* Timing Information Form */}
           <TimingInfoForm
@@ -552,37 +556,42 @@ export default function UploadPage() {
             handleArrayChange={handleArrayChange}
             addArrayItem={addArrayItem}
             removeArrayItem={removeArrayItem}
+            title="Timing Information"
           />
 
-          {/* Scores Form */}
+          {/* Score Files Form */}
           <ScoresForm 
             files={files} 
             handleFileChange={handleFileChange} 
-            isEditing={true} 
+            isEditing={true}
+            title="Score Files" 
           />
 
-          {/* Sound Tracks Form */}
+          {/* Sound Track Files */}
           <SoundTracksForm
             files={files}
             handleFileChange={handleFileChange}
             addFilesArrayItem={addFilesArrayItem}
             removeFilesArrayItem={removeFilesArrayItem}
+            title="Sound Track Files"
           />
 
-          {/* User Inputs Form */}
+          {/* Recording Files */}
           <UserInputsForm
             files={files}
             handleFileChange={handleFileChange}
             addFilesArrayItem={addFilesArrayItem}
             removeFilesArrayItem={removeFilesArrayItem}
+            title="Recording Files"
           />
 
-          {/* Additional Files Form */}
+          {/* Additional Files */}
           <AdditionalFilesForm
             files={files}
             handleFileChange={handleFileChange}
             addFilesArrayItem={addFilesArrayItem}
             removeFilesArrayItem={removeFilesArrayItem}
+            title="Additional Files"
           />
 
           {/* Submit Button */}

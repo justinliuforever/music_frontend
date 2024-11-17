@@ -66,10 +66,10 @@ export default function SoundTracksForm({
       </div>
       
       <div className="space-y-6">
-        {/* WAV Files */}
+        {/* WAV/MP3 Files */}
         <div className="bg-gray-50 p-6 rounded-lg">
           <label htmlFor="soundTracks.wav" className={labelClassName}>
-            WAV Files
+            Audio Files (WAV, MP3)
           </label>
           {isEditing ? (
             <input
@@ -77,7 +77,7 @@ export default function SoundTracksForm({
               name="soundTracks.wav"
               id="soundTracks.wav"
               onChange={(e) => handleFileChange(e, 'soundTracks', 'wav')}
-              accept=".wav"
+              accept=".wav,.mp3"
               multiple
               className={fileInputClassName}
               disabled={!isEditing}
@@ -85,7 +85,7 @@ export default function SoundTracksForm({
           ) : (
             <div className="space-y-2">
               {files.soundTracks?.map((track, index) => 
-                track.wav && renderFileLink(track.wav, `WAV File ${index + 1}`)
+                track.wav && renderFileLink(track.wav, `Audio File ${index + 1}`)
               )}
             </div>
           )}
