@@ -555,7 +555,11 @@ export default function UploadPage() {
           />
 
           {/* Scores Form */}
-          <ScoresForm files={files} handleFileChange={handleFileChange} />
+          <ScoresForm 
+            files={files} 
+            handleFileChange={handleFileChange} 
+            isEditing={true} 
+          />
 
           {/* Sound Tracks Form */}
           <SoundTracksForm
