@@ -61,11 +61,28 @@ function DetailPage() {
     }));
   };
 
-  const handleFileChange = async (e, section, field) => {
+  const handleFileChange = async (e, section, field, index) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    if (section === 'recordingOutputsPreAdjusted') {
+    if (section === 'soundTracks') {
+      setEditedData(prev => {
+        const newSoundTracks = [...(prev.soundTracks || [])];
+        // Ensure the track at index exists
+        if (!newSoundTracks[index]) {
+          newSoundTracks[index] = {};
+        }
+        // Update only the specific field (wav or midi) while preserving other fields
+        newSoundTracks[index] = {
+          ...newSoundTracks[index],
+          [field]: files[0]
+        };
+        return {
+          ...prev,
+          soundTracks: newSoundTracks
+        };
+      });
+    } else if (section === 'recordingOutputsPreAdjusted') {
       setEditedData(prev => ({
         ...prev,
         recordingOutputsPreAdjusted: Array.from(files)
@@ -77,13 +94,6 @@ function DetailPage() {
           ...prev.pitchMatch,
           [field]: files[0]
         }
-      }));
-    } else if (section === 'soundTracks') {
-      setEditedData(prev => ({
-        ...prev,
-        soundTracks: Array.from(files).map(file => ({
-          [field]: file
-        }))
       }));
     } else if (section === 'userInputs') {
       setEditedData(prev => ({

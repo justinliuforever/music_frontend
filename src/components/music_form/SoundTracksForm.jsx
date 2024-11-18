@@ -7,10 +7,7 @@ export default function SoundTracksForm({
   isEditing = true,
   title = "Sound Tracks"
 }) {
-  const labelClassName = `
-    block text-sm font-semibold leading-6 text-gray-900
-    mb-1 transition-colors duration-200
-  `;
+  const labelClassName = "block text-sm font-semibold leading-6 text-gray-900 mb-1";
 
   const fileInputClassName = `
     block w-full text-sm text-gray-500
@@ -41,8 +38,6 @@ export default function SoundTracksForm({
       }
     };
 
-    const fileName = getFileName(url);
-    
     return (
       <a
         key={url}
@@ -54,7 +49,7 @@ export default function SoundTracksForm({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
-        {fileName}
+        {getFileName(url)}
       </a>
     );
   };
@@ -65,55 +60,58 @@ export default function SoundTracksForm({
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
       </div>
       
-      <div className="space-y-6">
-        {/* WAV/MP3 Files */}
+      <div className="space-y-8">
+        {/* Audio Files Section */}
         <div className="bg-gray-50 p-6 rounded-lg">
-          <label htmlFor="soundTracks.wav" className={labelClassName}>
-            Audio Files (WAV, MP3)
-          </label>
-          {isEditing ? (
-            <input
-              type="file"
-              name="soundTracks.wav"
-              id="soundTracks.wav"
-              onChange={(e) => handleFileChange(e, 'soundTracks', 'wav')}
-              accept=".wav,.mp3"
-              multiple
-              className={fileInputClassName}
-              disabled={!isEditing}
-            />
-          ) : (
-            <div className="space-y-2">
-              {files.soundTracks?.map((track, index) => 
-                track.wav && renderFileLink(track.wav, `Audio File ${index + 1}`)
-              )}
-            </div>
-          )}
-        </div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-6">Audio Files</h4>
+          
+          {/* WAV/MP3 Files */}
+          <div className="mb-6">
+            <label htmlFor="soundTracks.wav" className={labelClassName}>
+              Audio Files (WAV, MP3)
+            </label>
+            {isEditing ? (
+              <input
+                type="file"
+                name="soundTracks.wav"
+                id="soundTracks.wav"
+                onChange={(e) => handleFileChange(e, 'soundTracks', 'wav', 0)}
+                accept=".wav,.mp3"
+                className={fileInputClassName}
+                disabled={!isEditing}
+              />
+            ) : (
+              <div className="space-y-2">
+                {files.soundTracks?.map((track, index) => 
+                  track.wav && renderFileLink(track.wav, `Audio File ${index + 1}`)
+                )}
+              </div>
+            )}
+          </div>
 
-        {/* MIDI Files */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <label htmlFor="soundTracks.midi" className={labelClassName}>
-            MIDI Files
-          </label>
-          {isEditing ? (
-            <input
-              type="file"
-              name="soundTracks.midi"
-              id="soundTracks.midi"
-              onChange={(e) => handleFileChange(e, 'soundTracks', 'midi')}
-              accept=".mid,.midi"
-              multiple
-              className={fileInputClassName}
-              disabled={!isEditing}
-            />
-          ) : (
-            <div className="space-y-2">
-              {files.soundTracks?.map((track, index) => 
-                track.midi && renderFileLink(track.midi, `MIDI File ${index + 1}`)
-              )}
-            </div>
-          )}
+          {/* MIDI Files */}
+          <div>
+            <label htmlFor="soundTracks.midi" className={labelClassName}>
+              MIDI Files
+            </label>
+            {isEditing ? (
+              <input
+                type="file"
+                name="soundTracks.midi"
+                id="soundTracks.midi"
+                onChange={(e) => handleFileChange(e, 'soundTracks', 'midi', 0)}
+                accept=".mid,.midi"
+                className={fileInputClassName}
+                disabled={!isEditing}
+              />
+            ) : (
+              <div className="space-y-2">
+                {files.soundTracks?.map((track, index) => 
+                  track.midi && renderFileLink(track.midi, `MIDI File ${index + 1}`)
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -126,16 +124,29 @@ SoundTracksForm.propTypes = {
       PropTypes.shape({
         wav: PropTypes.oneOfType([
           PropTypes.string,
-          PropTypes.instanceOf(File)
+          PropTypes.instanceOf(File),
+          PropTypes.oneOf([null])
         ]),
         midi: PropTypes.oneOfType([
           PropTypes.string,
-          PropTypes.instanceOf(File)
+          PropTypes.instanceOf(File),
+          PropTypes.oneOf([null])
         ])
       })
     )
-  }).isRequired,
+  }),
   handleFileChange: PropTypes.func.isRequired,
   isEditing: PropTypes.bool,
   title: PropTypes.string,
+};
+
+SoundTracksForm.defaultProps = {
+  files: {
+    soundTracks: [{
+      wav: null,
+      midi: null
+    }]
+  },
+  isEditing: true,
+  title: "Sound Tracks"
 };

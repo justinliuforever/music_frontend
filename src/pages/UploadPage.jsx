@@ -39,7 +39,10 @@ export default function UploadPage() {
       xmlSoloParts: [],
     },
     // Fields from SoundTracksForm
-    soundTracks: [],
+    soundTracks: [{
+      wav: null,
+      midi: null
+    }],
     // Fields from UserInputsForm
     userInputs: [],
     // Fields from AdditionalFilesForm
@@ -512,7 +515,10 @@ export default function UploadPage() {
           partScore: {
             xmlSoloParts: [],
           },
-          soundTracks: [],
+          soundTracks: [{
+            wav: null,
+            midi: null
+          }],
           userInputs: [],
           // Explicitly reset additional files
           recordingOutputsPreAdjusted: [],
