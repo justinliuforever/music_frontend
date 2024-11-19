@@ -207,6 +207,16 @@ function DetailPage() {
         });
       }
 
+      // Add pitchMatch file checking
+      if (musicDetail.pitchMatch && editedData.pitchMatch) {
+        ['userInput', 'originalTrack'].forEach(field => {
+          if (musicDetail.pitchMatch[field] && 
+              editedData.pitchMatch[field] instanceof File) {
+            filesToDelete.push(musicDetail.pitchMatch[field]);
+          }
+        });
+      }
+
       // Upload new files and get their URLs
       const updatedFiles = { ...editedData };
       
@@ -362,6 +372,26 @@ function DetailPage() {
           }
         }
         updatedFiles.recordingOutputsPreAdjusted = newRecordingOutputs;
+      }
+
+      // Handle pitchMatch files
+      if (updatedFiles.pitchMatch) {
+        const newPitchMatch = {};
+        for (const field of ['userInput', 'originalTrack']) {
+          if (updatedFiles.pitchMatch[field] instanceof File) {
+            const formData = new FormData();
+            formData.append('track', updatedFiles.pitchMatch[field]);
+            const response = await fetch(`${REACT_APP_API_URL}/firebase/uploadSoundTrack`, {
+              method: 'POST',
+              body: formData,
+            });
+            const result = await response.json();
+            newPitchMatch[field] = result.url;
+          } else if (updatedFiles.pitchMatch[field]) {
+            newPitchMatch[field] = updatedFiles.pitchMatch[field];
+          }
+        }
+        updatedFiles.pitchMatch = newPitchMatch;
       }
 
       // Delete old files from Firebase

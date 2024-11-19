@@ -7,6 +7,7 @@ import { REACT_APP_API_URL } from '../../config';
 import ScoresForm from '../components/music_form/ScoresForm';
 import SoundTracksForm from '../components/music_form/SoundTracksForm';
 import TimingInfoForm from '../components/music_form/TimingInfoForm';
+import UploadDetailsModal from '../components/UploadDetailsModal';
 import UserInputsForm from '../components/music_form/UserInputsForm';
 
 export default function UploadPage() {
@@ -52,6 +53,8 @@ export default function UploadPage() {
       originalTrack: null,
     },
   });
+
+  const [uploadedData, setUploadedData] = useState(null);
 
   // Modify handleChange to accept name, value, and type
   const handleFormDataChange = (name, value, type) => {
@@ -514,6 +517,7 @@ export default function UploadPage() {
 
       if (response.ok) {
         console.log('Upload successful');
+        setUploadedData(responseData); // Store the response data
         alert('Upload successful!');
         
         // Reset form data
@@ -635,6 +639,14 @@ export default function UploadPage() {
           </div>
         </form>
       </div>
+      
+      {/* Add Modal */}
+      {uploadedData && (
+        <UploadDetailsModal 
+          data={uploadedData} 
+          onClose={() => setUploadedData(null)}
+        />
+      )}
     </>
   );
 }
