@@ -119,17 +119,6 @@ export default function UploadPage() {
             ...prevFiles,
             [sectionName]: files
           };
-        } else if (index !== null) {
-          // For nested arrays like soundTracks and userInputs
-          const updatedArray = [...prevFiles[sectionName]];
-          updatedArray[index] = {
-            ...updatedArray[index],
-            [fieldName]: files,
-          };
-          return {
-            ...prevFiles,
-            [sectionName]: updatedArray,
-          };
         } else if (fieldName === 'editedXMLs' || fieldName === 'xmlSoloParts') {
           // For arrays of files in scores
           return {
@@ -146,42 +135,81 @@ export default function UploadPage() {
       // Handle single file
       const file = e.target.files[0];
       setFiles(prevFiles => {
+        // Handle userInputs files
+        if (sectionName === 'userInputs' && index !== null) {
+          const updatedUserInputs = [...prevFiles.userInputs];
+          updatedUserInputs[index] = {
+            ...updatedUserInputs[index],
+            [fieldName]: file
+          };
+          return {
+            ...prevFiles,
+            userInputs: updatedUserInputs
+          };
+        }
+        
+        // Handle soundTracks files
+        if (sectionName === 'soundTracks' && index !== null) {
+          const updatedSoundTracks = [...prevFiles.soundTracks];
+          updatedSoundTracks[index] = {
+            ...updatedSoundTracks[index],
+            [fieldName]: file
+          };
+          return {
+            ...prevFiles,
+            soundTracks: updatedSoundTracks
+          };
+        }
+
+        // Handle pitchMatch files
+        if (sectionName === 'pitchMatch') {
+          return {
+            ...prevFiles,
+            pitchMatch: {
+              ...prevFiles.pitchMatch,
+              [fieldName]: file
+            }
+          };
+        }
+
+        // Handle fullScore files
+        if (sectionName === 'fullScore') {
+          return {
+            ...prevFiles,
+            fullScore: {
+              ...prevFiles.fullScore,
+              [fieldName]: file
+            }
+          };
+        }
+
+        // Handle partScore files
+        if (sectionName === 'partScore') {
+          return {
+            ...prevFiles,
+            partScore: {
+              ...prevFiles.partScore,
+              [fieldName]: file
+            }
+          };
+        }
+
+        // Handle direct file updates (for simple fields)
         if (fieldName === null) {
-          // Direct update for simple file fields
           return {
             ...prevFiles,
             [sectionName]: file
           };
-        } else if (index !== null) {
-          // For nested arrays like soundTracks and userInputs
-          const updatedArray = [...prevFiles[sectionName]];
-          updatedArray[index] = {
-            ...updatedArray[index],
-            [fieldName]: file,
-          };
-          return {
-            ...prevFiles,
-            [sectionName]: updatedArray,
-          };
-        } else if (sectionName === 'pitchMatch') {
-          // Special handling for pitchMatch
-          return {
-            ...prevFiles,
-            [sectionName]: {
-              ...prevFiles[sectionName],
-              [fieldName]: file,
-            },
-          };
-        } else {
-          // For other nested objects like fullScore
-          return {
-            ...prevFiles,
-            [sectionName]: {
-              ...prevFiles[sectionName],
-              [fieldName]: file,
-            },
-          };
         }
+
+        // Default case for other nested objects
+        return {
+          ...prevFiles,
+          [sectionName]: {
+            ...prevFiles[sectionName],
+            [fieldName]: file
+          }
+        };
       });
     }
   };
@@ -388,7 +416,7 @@ export default function UploadPage() {
           }
 
           // Add input URLs to the array if any file was uploaded
-          if (inputUrls.rawRecording || inputUrls.reverbAdded || inputUrls.noiseCancelled) {
+          if (Object.keys(inputUrls).length > 0) {
             uploadedUrls.userInputs.push(inputUrls);
           }
         }
@@ -515,12 +543,8 @@ export default function UploadPage() {
           partScore: {
             xmlSoloParts: [],
           },
-          soundTracks: [{
-            wav: null,
-            midi: null
-          }],
-          userInputs: [],
-          // Explicitly reset additional files
+          soundTracks: [],
+          userInputs: [], // Reset to an empty array
           recordingOutputsPreAdjusted: [],
           pitchMatch: {
             userInput: null,

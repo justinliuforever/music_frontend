@@ -4,13 +4,12 @@ import React from 'react';
 export default function UserInputsForm({ 
   files, 
   handleFileChange, 
+  addFilesArrayItem,
+  removeFilesArrayItem,
   isEditing = true,
   title = "User Recordings"
 }) {
-  const labelClassName = `
-    block text-sm font-semibold leading-6 text-gray-900
-    mb-1 transition-colors duration-200
-  `;
+  const labelClassName = "block text-sm font-semibold leading-6 text-gray-900 mb-1";
 
   const fileInputClassName = `
     block w-full text-sm text-gray-500
@@ -57,87 +56,108 @@ export default function UserInputsForm({
     );
   };
 
+  const handleAddRecording = () => {
+    addFilesArrayItem('userInputs', null, {
+      rawRecording: null,
+      reverbAdded: null,
+      noiseCancelled: null
+    });
+  };
+
   return (
     <div className="bg-white p-8 rounded-xl shadow-md border border-gray-200">
-      <div className="flex items-center mb-8 pb-4 border-b border-gray-200">
+      <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+        {isEditing && (
+          <button
+            type="button"
+            onClick={handleAddRecording}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          >
+            Add Recording Set
+          </button>
+        )}
       </div>
       
-      <div className="space-y-6">
-        {/* Raw Recordings */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <label htmlFor="userInputs.rawRecording" className={labelClassName}>
-            Raw Recordings
-          </label>
-          {isEditing ? (
-            <input
-              type="file"
-              name="userInputs.rawRecording"
-              id="userInputs.rawRecording"
-              onChange={(e) => handleFileChange(e, 'userInputs', 'rawRecording')}
-              accept="audio/*"
-              multiple
-              className={fileInputClassName}
-              disabled={!isEditing}
-            />
-          ) : (
-            <div className="space-y-2">
-              {files.userInputs?.map((input, index) => 
-                input.rawRecording && renderFileLink(input.rawRecording, `Raw Recording ${index + 1}`)
-              )}
-            </div>
-          )}
-        </div>
+      <div className="space-y-8">
+        {files.userInputs.map((recording, index) => (
+          <div key={index} className="bg-gray-50 p-6 rounded-lg relative">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => removeFilesArrayItem('userInputs', null, index)}
+                className="absolute top-4 right-4 text-red-600 hover:text-red-800"
+              >
+                Remove
+              </button>
+            )}
+            
+            <h4 className="text-lg font-semibold text-gray-900 mb-6">Recording Set {index + 1}</h4>
 
-        {/* Reverb Added Recordings */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <label htmlFor="userInputs.reverbAdded" className={labelClassName}>
-            Reverb Added Recordings
-          </label>
-          {isEditing ? (
-            <input
-              type="file"
-              name="userInputs.reverbAdded"
-              id="userInputs.reverbAdded"
-              onChange={(e) => handleFileChange(e, 'userInputs', 'reverbAdded')}
-              accept="audio/*"
-              multiple
-              className={fileInputClassName}
-              disabled={!isEditing}
-            />
-          ) : (
-            <div className="space-y-2">
-              {files.userInputs?.map((input, index) => 
-                input.reverbAdded && renderFileLink(input.reverbAdded, `Reverb Added ${index + 1}`)
+            {/* Raw Recording */}
+            <div className="mb-6">
+              <label htmlFor={`userInputs.${index}.rawRecording`} className={labelClassName}>
+                Raw Recording
+              </label>
+              {isEditing ? (
+                <input
+                  type="file"
+                  name={`userInputs.${index}.rawRecording`}
+                  id={`userInputs.${index}.rawRecording`}
+                  onChange={(e) => handleFileChange(e, 'userInputs', 'rawRecording', index)}
+                  accept="audio/*"
+                  className={fileInputClassName}
+                />
+              ) : (
+                renderFileLink(recording.rawRecording, 'Raw Recording')
               )}
             </div>
-          )}
-        </div>
 
-        {/* Noise Cancelled Recordings */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <label htmlFor="userInputs.noiseCancelled" className={labelClassName}>
-            Noise Cancelled Recordings
-          </label>
-          {isEditing ? (
-            <input
-              type="file"
-              name="userInputs.noiseCancelled"
-              id="userInputs.noiseCancelled"
-              onChange={(e) => handleFileChange(e, 'userInputs', 'noiseCancelled')}
-              accept="audio/*"
-              multiple
-              className={fileInputClassName}
-              disabled={!isEditing}
-            />
-          ) : (
-            <div className="space-y-2">
-              {files.userInputs?.map((input, index) => 
-                input.noiseCancelled && renderFileLink(input.noiseCancelled, `Noise Cancelled ${index + 1}`)
+            {/* Reverb Added */}
+            <div className="mb-6">
+              <label htmlFor={`userInputs.${index}.reverbAdded`} className={labelClassName}>
+                Reverb Added Recording
+              </label>
+              {isEditing ? (
+                <input
+                  type="file"
+                  name={`userInputs.${index}.reverbAdded`}
+                  id={`userInputs.${index}.reverbAdded`}
+                  onChange={(e) => handleFileChange(e, 'userInputs', 'reverbAdded', index)}
+                  accept="audio/*"
+                  className={fileInputClassName}
+                />
+              ) : (
+                renderFileLink(recording.reverbAdded, 'Reverb Added Recording')
               )}
             </div>
-          )}
-        </div>
+
+            {/* Noise Cancelled */}
+            <div>
+              <label htmlFor={`userInputs.${index}.noiseCancelled`} className={labelClassName}>
+                Noise Cancelled Recording
+              </label>
+              {isEditing ? (
+                <input
+                  type="file"
+                  name={`userInputs.${index}.noiseCancelled`}
+                  id={`userInputs.${index}.noiseCancelled`}
+                  onChange={(e) => handleFileChange(e, 'userInputs', 'noiseCancelled', index)}
+                  accept="audio/*"
+                  className={fileInputClassName}
+                />
+              ) : (
+                renderFileLink(recording.noiseCancelled, 'Noise Cancelled Recording')
+              )}
+            </div>
+          </div>
+        ))}
+
+        {files.userInputs.length === 0 && isEditing && (
+          <div className="text-center py-8 text-gray-500">
+            No recordings added. Click "Add Recording Set" to begin.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -149,20 +169,25 @@ UserInputsForm.propTypes = {
       PropTypes.shape({
         rawRecording: PropTypes.oneOfType([
           PropTypes.string,
-          PropTypes.instanceOf(File)
+          PropTypes.instanceOf(File),
+          PropTypes.oneOf([null])
         ]),
         reverbAdded: PropTypes.oneOfType([
           PropTypes.string,
-          PropTypes.instanceOf(File)
+          PropTypes.instanceOf(File),
+          PropTypes.oneOf([null])
         ]),
         noiseCancelled: PropTypes.oneOfType([
           PropTypes.string,
-          PropTypes.instanceOf(File)
+          PropTypes.instanceOf(File),
+          PropTypes.oneOf([null])
         ])
       })
-    )
+    ).isRequired
   }).isRequired,
   handleFileChange: PropTypes.func.isRequired,
+  addFilesArrayItem: PropTypes.func,
+  removeFilesArrayItem: PropTypes.func,
   isEditing: PropTypes.bool,
   title: PropTypes.string,
 };

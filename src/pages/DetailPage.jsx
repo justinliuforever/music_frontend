@@ -96,12 +96,17 @@ function DetailPage() {
         }
       }));
     } else if (section === 'userInputs') {
-      setEditedData(prev => ({
-        ...prev,
-        userInputs: Array.from(files).map(file => ({
-          [field]: file
-        }))
-      }));
+      setEditedData(prev => {
+        const updatedUserInputs = [...prev.userInputs];
+        updatedUserInputs[index] = {
+          ...updatedUserInputs[index],
+          [field]: files[0]
+        };
+        return {
+          ...prev,
+          userInputs: updatedUserInputs
+        };
+      });
     } else {
       const isMultiple = e.target.multiple;
       setEditedData(prev => ({
