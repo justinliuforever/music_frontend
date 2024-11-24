@@ -28,6 +28,7 @@ export default function BasicInfoForm({
 
   return (
     <div className="bg-white p-8 rounded-xl shadow-md border border-gray-200">
+      {/* Header */}
       <div className="flex items-center mb-8 pb-4 border-b border-gray-200">
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
         {isEditing && (
@@ -37,9 +38,30 @@ export default function BasicInfoForm({
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Composer Information */}
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-8">
+        {/* Cover Image Section */}
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Cover Image</h4>
+          <div>
+            <label htmlFor="coverImageUrl" className={labelClassName}>
+              Cover Image URL
+            </label>
+            <input
+              type="text"
+              name="coverImageUrl"
+              id="coverImageUrl"
+              value={formData.coverImageUrl || ''}
+              onChange={localHandleChange}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="Enter image URL"
+            />
+          </div>
+        </div>
+
+        {/* Main Information Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Composer Information */}
           <div className="bg-gray-50 p-6 rounded-lg">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Composer Details</h4>
             <div className="space-y-4">
@@ -77,10 +99,8 @@ export default function BasicInfoForm({
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Composition Information */}
-        <div className="space-y-6">
+          {/* Composition Information */}
           <div className="bg-gray-50 p-6 rounded-lg">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Composition Details</h4>
             <div className="space-y-4">
@@ -118,52 +138,52 @@ export default function BasicInfoForm({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Additional Details */}
-      <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4">Additional Details</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label htmlFor="key" className={labelClassName}>Key</label>
-            <input
-              type="text"
-              name="key"
-              id="key"
-              value={formData.key || ''}
-              onChange={localHandleChange}
-              disabled={!isEditing}
-              className={inputClassName}
-              placeholder="e.g., G minor"
-            />
-          </div>
-          <div>
-            <label htmlFor="movementNumber" className={labelClassName}>Movement Number</label>
-            <input
-              type="number"
-              name="movementNumber"
-              id="movementNumber"
-              value={formData.movementNumber || ''}
-              onChange={localHandleChange}
-              disabled={!isEditing}
-              className={inputClassName}
-              placeholder="e.g., 1"
-            />
-          </div>
-          <div>
-            <label htmlFor="instrumentOrVoiceType" className={labelClassName}>
-              Instrument/Voice Type
-            </label>
-            <input
-              type="text"
-              name="instrumentOrVoiceType"
-              id="instrumentOrVoiceType"
-              value={formData.instrumentOrVoiceType || ''}
-              onChange={localHandleChange}
-              disabled={!isEditing}
-              className={inputClassName}
-              placeholder="e.g., Piano"
-            />
+        {/* Additional Details */}
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Additional Details</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label htmlFor="key" className={labelClassName}>Key</label>
+              <input
+                type="text"
+                name="key"
+                id="key"
+                value={formData.key || ''}
+                onChange={localHandleChange}
+                disabled={!isEditing}
+                className={inputClassName}
+                placeholder="e.g., G minor"
+              />
+            </div>
+            <div>
+              <label htmlFor="movementNumber" className={labelClassName}>Movement Number</label>
+              <input
+                type="number"
+                name="movementNumber"
+                id="movementNumber"
+                value={formData.movementNumber || ''}
+                onChange={localHandleChange}
+                disabled={!isEditing}
+                className={inputClassName}
+                placeholder="e.g., 1"
+              />
+            </div>
+            <div>
+              <label htmlFor="instrumentOrVoiceType" className={labelClassName}>
+                Instrument/Voice Type
+              </label>
+              <input
+                type="text"
+                name="instrumentOrVoiceType"
+                id="instrumentOrVoiceType"
+                value={formData.instrumentOrVoiceType || ''}
+                onChange={localHandleChange}
+                disabled={!isEditing}
+                className={inputClassName}
+                placeholder="e.g., Piano"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -173,6 +193,7 @@ export default function BasicInfoForm({
 
 BasicInfoForm.propTypes = {
   formData: PropTypes.shape({
+    coverImageUrl: PropTypes.string,
     composerLastName: PropTypes.string.isRequired,
     composerFullName: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
