@@ -137,14 +137,29 @@ export default function TimingInfoForm({
           <label className={labelClassName}>
             Rehearsal Numbers
           </label>
-          {formData.rehearsalNumbers.map((number, index) => (
-            <div key={index} className="mt-2.5 flex gap-2">
+          {formData.rehearsalNumbers.map((rehearsal, index) => (
+            <div key={index} className="mt-2.5 flex gap-2 items-center">
+              <select
+                value={rehearsal?.letter || ''}
+                onChange={(e) => handleArrayChange(e, index, 'rehearsalNumbers', 'letter')}
+                className={inputClassName}
+                disabled={!isEditing}
+              >
+                <option value="" disabled>
+                  Select letter
+                </option>
+                {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map(letter => (
+                  <option key={letter} value={letter}>
+                    {letter}
+                  </option>
+                ))}
+              </select>
               <input
                 type="text"
-                value={number}
-                onChange={(e) => handleArrayChange(e, index, 'rehearsalNumbers')}
+                value={rehearsal?.time || ''}
+                onChange={(e) => handleArrayChange(e, index, 'rehearsalNumbers', 'time')}
                 className={inputClassName}
-                placeholder="Enter rehearsal number"
+                placeholder="e.g., 1:52.068"
                 disabled={!isEditing}
               />
               {isEditing && (
@@ -161,7 +176,7 @@ export default function TimingInfoForm({
           {isEditing && (
             <button
               type="button"
-              onClick={() => addArrayItem('rehearsalNumbers', '')}
+              onClick={() => addArrayItem('rehearsalNumbers', { letter: '', time: '' })}
               className="mt-2 inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               Add Rehearsal Number
@@ -257,7 +272,12 @@ TimingInfoForm.propTypes = {
         ending: PropTypes.string,
       })
     ),
-    rehearsalNumbers: PropTypes.arrayOf(PropTypes.string),
+    rehearsalNumbers: PropTypes.arrayOf(
+      PropTypes.shape({
+        letter: PropTypes.string,
+        time: PropTypes.string,
+      })
+    ),
     rubatoSections: PropTypes.arrayOf(PropTypes.string),
     barNumbers: PropTypes.arrayOf(PropTypes.oneOfType([
       PropTypes.number,
